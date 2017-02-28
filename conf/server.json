@@ -1,0 +1,22 @@
+{
+    "port": "8080",
+    "modules": [
+        "lib/base.js",
+        "lib/comet.js",
+        "lib/mock.js",
+        "lib/localdb.js"
+    ],
+    "ipc": {
+        "socketPath": "/conf/sock/ipc.sock",
+        "port": 7100,
+        "host": "localhost"
+    },
+    "log": {
+        "path": "{server}/log/",
+        "level": [
+            "info",
+            "error"
+        ],
+        "maxsize": 2097152
+    }
+}

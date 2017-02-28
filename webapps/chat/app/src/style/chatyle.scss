@@ -1,0 +1,302 @@
+@import "base.scss";
+@import "reset.scss";
+
+@mixin btn{
+    line-height:45px;
+    color:white;
+    text-align: center;
+    background:#4B8BF5;
+    @include borderadius(3px);
+    margin:10px 0 10px 0;
+    cursor:default;
+    @include userselect;
+    border-right:1px solid #4681E5;
+    border-bottom:1px solid #4681E5;
+    &:hover{
+        background:#4883E5;
+    }
+    &:active{
+        background:#4376D1;
+    }
+}
+.chatlogin{
+    @include absolute;
+    .chatlogin-con{
+        width:300px;
+        @include absolute(50%,auto,auto,50%);
+        margin-left:-150px;
+        .chatlogin-con-label{
+            line-height:45px;
+        }
+        .chatlogin-con-input{
+            line-height:40px;
+            input{
+                height:40px;
+                @include borderbox;
+                padding:0 5px 0 5px;
+                width:100%;
+                border:1px solid #D7D7D7;
+                @include borderadius(3px);
+            }
+        }
+        .chatlogin-con-btn{
+            @include btn;
+        }
+    }
+}
+.chatcontainer{
+    @include absolute;
+    .chatcontainer-left{
+        @include absolute(0,auto,0,0);
+        width:300px;
+        .chatcontainer-left-title{
+            line-height:35px;
+            padding:0 10px 0 10px;
+            background:white;
+        }
+        .chatcontainer-left-list{
+            @include absolute(35px,0,0,0);
+            border-top:1px solid #D7D7D7;
+        }
+    }
+    .chatcontainer-right{
+        @include absolute(0,0,0,300px);
+        border-left:1px solid #D7D7D7;
+        background:#F0F0F0;
+    }
+}
+.chatlist{
+    .chatbox-item{
+        line-height:40px;
+        background:white;
+        border-bottom: 1px solid #D7D7D7;
+        @include displayflex;
+        .a{
+            @include flex(1);
+            padding:0 10px 0 10px;
+            overflow:hidden;
+            text-overflow: ellipsis;
+        }
+        .b{
+            width:40px;
+            text-align: center;
+            display:none;
+            span{
+                display:inline-block;
+                width:10px;
+                height:10px;
+                @include borderadius(50%);
+                background:red;
+                vertical-align: middle;
+            }
+        }
+        &.state{
+            .b{
+                display: block;
+            }
+        }
+    }
+}
+.chatbox{
+    @include absolute;
+    .chatbox-title{
+        line-height:35px;
+        padding:0 10px 0 10px;
+        background:white;
+    }
+    .chatbox-box{
+        @include absolute(35px,0,60px,0);
+        border-top: 1px solid #D7D7D7;
+        background:#F0F0F0;
+        overflow:auto;
+        .chat-box-item{
+            padding:10px;
+            white-space:nowrap;
+            &.left{
+                .a{
+                    display:inline-block;
+                    width:40px;
+                    height:40px;
+                    line-height:40px;
+                    text-align: center;
+                    background:white;
+                    border:1px solid #D7D7D7;
+                    -webkit-border-radius: 50%;
+                    vertical-align: top;
+                    font-size:12px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .b{
+                    vertical-align: top;
+                    display:inline-block;
+                    padding:10px;
+                    background:#3399FF;
+                    color:white;
+                    position:relative;
+                    margin-left:10px;
+                    white-space:normal;
+                    max-width:70%;
+                    &:after{
+                        content:"";
+                        display:block;
+                        border-top:5px solid transparent;
+                        border-right:5px solid #3399FF;
+                        border-bottom:5px solid transparent;
+                        border-left:5px solid transparent;
+                        -webkit-border-radius: 3px;
+                        position:absolute;
+                        right:100%;
+                        top:15px;
+                    }
+                }
+            }
+            &.right{
+                text-align: right;
+                white-space:nowrap;
+                .a{
+                    display:inline-block;
+                    width:40px;
+                    height:40px;
+                    line-height:40px;
+                    text-align: center;
+                    background:white;
+                    border:1px solid #D7D7D7;
+                    -webkit-border-radius: 50%;
+                    vertical-align: top;
+                    font-size:12px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .b{
+                    vertical-align: top;
+                    display:inline-block;
+                    padding:10px;
+                    background:#3399FF;
+                    color:white;
+                    position:relative;
+                    margin-right:10px;
+                    /*margin-left:100px;*/
+                    white-space:normal;
+                    text-align:left;
+                    max-width:70%;
+                    &:after{
+                        content:"";
+                        display:block;
+                        border-top:5px solid transparent;
+                        border-left:5px solid #3399FF;
+                        border-bottom:5px solid transparent;
+                        border-right:5px solid transparent;
+                        position:absolute;
+                        -webkit-border-radius: 3px;
+                        left:100%;
+                        top:15px;
+                    }
+                }
+            }
+        }
+    }
+    .chatbox-tools{
+        @include absolute(auto,0,0,0);
+        @include displayflex;
+        border-top:1px solid #D7D7D7;
+    }
+    .chatbox-tools-input{
+        @include flex(1);
+        textarea{
+            height:60px;
+            max-height:60px;
+            width:100%;
+            @include borderbox;
+            border-right:1px solid #D7D7D7;
+        }
+    }
+    .chatbox-tools-btn{
+        width:70px;
+        text-align: center;
+        line-height:60px;
+    }
+}
+
+.toast{
+    position: fixed;
+    left:0;
+    right:0;
+    bottom:-30px;
+    height:30px;
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+    display: -ms-flexbox;
+    -webkit-box-orient: horizontal;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+    -moz-box-orient: horizontal;
+    -moz-box-pack: center;
+    -moz-box-align: center;
+    -ms-flex-orient: horizontal;
+    -ms-flex-pack: center;
+    -ms-flex-align: center;
+    box-orient: horizontal;
+    box-pack: center;
+    box-align: center;
+    z-index:999999999;
+    .toast_text{ 
+        line-height:30px;
+        background:#5F5D5D;
+        color:white;
+        padding:0 15px 0 15px;
+        -webkit-border-radius: 15px;
+        -moz-border-radius: 15px;
+        border-radius: 15px;
+    }
+}
+#loadingbar{
+    position:fixed;
+    left:0;
+    top:0;
+    right:0;
+    bottom:0;
+    z-index:999999999;
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+
+    display: -moz-box;
+    -moz-box-orient: horizontal;
+    -moz-box-pack: center;
+    -moz-box-align: center;
+
+    display: -ms-flexbox;
+    -ms-flex-orient: horizontal;
+    -ms-flex-pack: center;
+    -ms-flex-align: center;
+
+    display: box;
+    box-orient: horizontal;
+    box-pack: center;
+    box-align: center;
+    .loadingbar-bg{
+        position:absolute;
+        left:0;
+        top:0;
+        right:0;
+        bottom:0;
+        background:rgba(0,0,0,0.05);
+    }
+    .loadingbar-desc{
+        position: relative;
+        padding:15px 20px 15px 20px;
+        background:white;
+        /*border:1px solid #F8F7F7;*/
+        -webkit-border-radius: 2px;
+        -webkit-box-shadow: 1px 2px 10px #B2B2B2;
+        -moz-border-radius: 2px;
+        -moz-box-shadow: 1px 2px 10px #B2B2B2;
+        -ms-border-radius: 2px;
+        -ms-box-shadow: 1px 2px 10px #B2B2B2;
+        border-radius: 2px;
+        box-shadow: 1px 2px 10px #B2B2B2;
+    }
+}

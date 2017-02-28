@@ -1,0 +1,41 @@
+{
+    "page":{
+        "index":"index.nsp"
+    },
+    "service":[
+        {"name":"daoservice","option":{
+            "host": "localhost",
+            "port":"3306",
+            "debug":false,
+            "database":"home",
+            "user": "root",
+            "password": "",
+            "connectionLimit ": "200"   
+        }},
+        {"name":"cometservice","option":{
+            "keeptime":3000,
+            "handler":"comethandler.testhandler"
+        }},
+        {"name":"mvcservice"},
+        {"name":"proxyservice","option":{
+            "baidu":{
+                "host":"www.baidu.com",
+                "timeout":300000
+            }
+        }}
+    ],
+    "filter":[
+        {"name":"mvcfilter"},
+        {"name":"cachefilter","option":{
+            "etag":true,
+            "cacheSetting":{
+                "png":20000,
+                "js":2000,
+                "default":2000
+            }
+        }},
+        {"name":"zipfilter","option":{
+            "gzip":"js,css"
+        }}
+    ]
+}

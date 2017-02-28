@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>BrightJS TODO List Sample</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+        <meta name="format-detection" content="telephone=no">
+        <meta name="apple-mobile-web-app-status-bar-style" content="white">
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <script src="<%=request.getHttpPath();%>app/topolr.js" type="text/javascript"></script>
+        <script>
+            App({sitePath:"<%=request.getHttpPath();%>",basePath:"app/dist/",map:{"d":true,"m":{"chat":"3c8b6baaaa","option.root":"60c520a95a","service.chat":"d093c901a3","style.chatyle":"53a1b92a03","template.chatemp":"782a8e6368"},"c":{"option-root-c5":["option.root","chat","service.chat","template.chatemp","style.chatyle"]}}}).boot("option.root.chat");
+        </script>
+    </head>
+    <body>
+    </body>
+</html>
+
