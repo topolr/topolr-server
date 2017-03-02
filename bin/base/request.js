@@ -2,12 +2,18 @@ var topolr=require("topolr-util");
 var cookie = require("./cookie");
 var header = function (arr) {
     this._headers = {};
-    arr.forEach(function (n, i) {
-        var t = i + 1;
-        if (t % 2 !== 0) {
-            this._headers[n.toLowerCase()] = arr[t];
+    if(topolr.is.isArray(arr)) {
+        arr.forEach(function (n, i) {
+            var t = i + 1;
+            if (t % 2 !== 0) {
+                this._headers[n.toLowerCase()] = arr[t];
+            }
+        }.bind(this));
+    }else{
+        for(var i in arr){
+            this._headers[i.toLowerCase()]=arr[i];
         }
-    }.bind(this));
+    }
 };
 header.prototype.getHost = function () {
     return this._headers.host;
@@ -154,10 +160,10 @@ request.prototype.getHttpPath = function () {
     if (t === "ROOT") {
         t = "";
     }
-    return "http://" + this.getHeaders().getHost() + "/" + (t ? t + "/" : "");
+    return TopolrServer.getServerProtocol()+"://" + this.getHeaders().getHost() + "/" + (t ? t + "/" : "");
 };
 request.prototype.getRequestURL=function () {
-    return "http://"+this.getHeaders().getHost()+this.getURL();
+    return TopolrServer.getServerProtocol()+"://"+this.getHeaders().getHost()+this.getURL();
 };
 request.prototype.isSpiderByUA = function () {
     var t = this.getContext();

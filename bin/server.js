@@ -12,12 +12,12 @@ var topolrServer = function () {
     this.serverConfig = require("../conf/server");
     this.webConfig = require("../conf/web");
     this.packageConfig = require("../package");
-    this.basePath = topolr.cpath.getNormalizePath(process.cwd())+"/";
+    this.basePath = topolr.cpath.getNormalizePath(process.cwd()) + "/";
     this.version = this.packageConfig.version;
     this.projects = {};
-    this._server=null;
-    this.sessioninterval=0;
-    this.startSessionWatcher();
+    this._server = null;
+    this.sessioninterval = 0;
+    this.http2=this.serverConfig.http2&&this.serverConfig.http2.enable;
 };
 topolrServer.prototype.setTemplateGlobalMacro = function () {
     topolr.setTemplateGlobalMacro("include", function (attrs, render) {
@@ -34,7 +34,7 @@ topolrServer.prototype.setTemplateGlobalMacro = function () {
                 this._caching[i] = temp._caching[i];
             }
         } catch (e) {
-            util.logger.log("error",e);
+            util.logger.log("error", e);
         }
         return t;
     });
@@ -51,7 +51,7 @@ topolrServer.prototype.setTemplateGlobalMacro = function () {
                 }
             });
         } catch (e) {
-            util.logger.log("error",e);
+            util.logger.log("error", e);
         }
         return a;
     });
@@ -81,33 +81,33 @@ topolrServer.prototype.getModulesCode = function () {
 };
 topolrServer.prototype.initProjects = function (code) {
     var ths = this;
-    var ps=topolr.promise(function (a) {
+    var ps = topolr.promise(function (a) {
         a();
     });
     var projectpath = this.basePath + "webapps/";
-    topolr.file(projectpath).subscan(function (path,isfile) {
-        if(isfile){
-            if(topolr.cpath.getSuffix(path)==="json") {
+    topolr.file(projectpath).subscan(function (path, isfile) {
+        if (isfile) {
+            if (topolr.cpath.getSuffix(path) === "json") {
                 (function (path) {
                     ps.then(function () {
                         return topolr.file(path).read().then(function (data) {
                             var n = JSON.parse(data);
                             var t = project(n.path, n.name, true);
-                            t._server=ths;
+                            t._server = ths;
                             ths.projects[n.name] = t;
-                            util.logger.log("startproject",{name:n.name});
+                            util.logger.log("startproject", {name: n.name});
                             return t.run(code);
                         });
                     });
                 })(path);
             }
-        }else{
+        } else {
             (function (b) {
                 ps.then(function () {
                     var t = project(b.path, b.name, false);
-                    t._server=ths;
+                    t._server = ths;
                     ths.projects[b.name] = t;
-                    util.logger.log("startproject",{name:b.name});
+                    util.logger.log("startproject", {name: b.name});
                     return t.run(code);
                 });
             })({
@@ -121,16 +121,33 @@ topolrServer.prototype.initProjects = function (code) {
 topolrServer.prototype.initServer = function () {
     var ths = this;
     try {
-        this._server=http.createServer(function (req, res) {
-            if (req.method.toLowerCase() === "post") {
-                ths.doPostRequest(req, res);
-            } else {
-                ths.doRequest(req, res);
-            }
-        }).listen(this.serverConfig.port);
-        util.logger.log("startserver",{port:this.serverConfig.port});
+        this.startSessionWatcher();
+        if (this.http2) {
+            var keypath=this.serverConfig.http2.key.replace(/\{server\}/g,this.basePath);
+            var certpath=this.serverConfig.http2.cert.replace(/\{server\}/g,this.basePath);
+            this._server = require("http2").createServer({
+                key: topolr.file(keypath).readSync(),
+                cert: topolr.file(certpath).readSync()
+            }, function (req, res) {
+                if (req.method.toLowerCase() === "post") {
+                    ths.doPostRequest(req, res);
+                } else {
+                    ths.doRequest(req, res);
+                }
+            }).listen(this.serverConfig.port);
+            util.logger.log("startserver", {port: this.serverConfig.port,http2:true});
+        } else {
+            this._server = http.createServer(function (req, res) {
+                if (req.method.toLowerCase() === "post") {
+                    ths.doPostRequest(req, res);
+                } else {
+                    ths.doRequest(req, res);
+                }
+            }).listen(this.serverConfig.port);
+            util.logger.log("startserver", {port: this.serverConfig.port});
+        }
     } catch (e) {
-        util.logger.log("error",e);
+        util.logger.log("error", e);
     }
 };
 topolrServer.prototype.startup = function () {
@@ -139,12 +156,12 @@ topolrServer.prototype.startup = function () {
         return this.initProjects(code);
     }).then(function () {
         this.initServer();
-    },function (e,a) {
-        util.logger.log("error",e);
+    }, function (e, a) {
+        util.logger.log("error", e);
     });
 };
 topolrServer.prototype.stop = function () {
-    var ps=topolr.promise();
+    var ps = topolr.promise();
     this.stopSessionWatcher();
     for (var i in this.projects) {
         (function (b) {
@@ -170,7 +187,11 @@ topolrServer.prototype.getRequestInfo = function (req, res) {
     if (!prj) {
         prj = this.projects["ROOT"];
     }
-    var resp = response(), reqt = request(req, {method: req.method.toLowerCase(), url: req.url + t, rawHeaders: req.rawHeaders});
+    var resp = response(), reqt = request(req, {
+        method: req.method.toLowerCase(),
+        url: req.url + t,
+        rawHeaders: req.rawHeaders||req.headers
+    });
     return {
         project: prj,
         request: reqt,
@@ -181,14 +202,19 @@ topolrServer.prototype.doPostRequest = function (req, res) {
     var ths = this;
     var post = {}, file = {};
     var info = this.getRequestInfo(req, res);
-    util.logger.log("request",{project:info.project._name,type:"POST",path:info.request.getURL(),ip:info.request.getClientIp()});
+    util.logger.log("request", {
+        project: info.project._name,
+        type: "POST",
+        path: info.request.getURL(),
+        ip: info.request.getClientIp()
+    });
     var uploadInfo = info.project.getConfig().getUploadInfo();
     var form = new formidable.IncomingForm();
     form.encoding = uploadInfo.encoding;
     form.uploadDir = uploadInfo.temp;
     form.maxFieldsSize = uploadInfo.max;
     form.on('error', function (err) {
-        util.logger.log("error",err);
+        util.logger.log("error", err);
         ths.doResponse(info.project.error(err), info.request, info.response, res);
     }).on('field', function (field, value) {
         if (form.type === 'multipart') {
@@ -211,21 +237,26 @@ topolrServer.prototype.doPostRequest = function (req, res) {
 };
 topolrServer.prototype.doRequest = function (req, res) {
     var info = this.getRequestInfo(req, res);
-    util.logger.log("request",{project:info.project._name,type:"GET",path:info.request.getURL(),ip:info.request.getClientIp()});
+    util.logger.log("request", {
+        project: info.project._name,
+        type: "GET",
+        path: info.request.getURL(),
+        ip: info.request.getClientIp()
+    });
     info.request._data = topolr.serialize.queryObject(req.url);
     this.triggerProject(info.project, info.request, info.response, res);
 };
 topolrServer.prototype.triggerProject = function (prj, reqt, resp, res) {
     var ths = this;
-    prj.trigger(reqt, resp,res).then(function (a) {
+    prj.trigger(reqt, resp, res).then(function (a) {
         ths.doResponse(a, reqt, resp, res);
     });
 };
 topolrServer.prototype.doResponse = function (view, reqt, resp, res) {
     var serverName = "topolr " + this.version;
     view.doRender(function () {
-        var cstr=resp._cookie.getCookieString();
-        if(cstr) {
+        var cstr = resp._cookie.getCookieString();
+        if (cstr) {
             resp._headers["Set-Cookie"] = cstr;
         }
         resp._headers["Server"] = serverName;
@@ -246,13 +277,13 @@ topolrServer.prototype.doResponse = function (view, reqt, resp, res) {
 topolrServer.prototype.startSessionWatcher = function () {
     var tout = this.webConfig.session.timeout;
     this.sessioninterval = setInterval(function () {
-        for(var i in this.projects){
+        for (var i in this.projects) {
             this.projects[i].checkSession(tout);
         }
     }.bind(this), tout * 1000);
     return this;
 };
-topolrServer.prototype.stopSessionWatcher=function () {
+topolrServer.prototype.stopSessionWatcher = function () {
     clearInterval(this.sessioninterval);
     return this;
 }
@@ -273,15 +304,15 @@ topolrServer.prototype.listProjects = function () {
     queue.complete(function () {
         ps.resolve(ls);
     });
-    topolr.file(path).subscan(function (pa,isfile) {
-        if(!isfile){
-            var n = pa.substring(path.length + 1,pa.length-1);
+    topolr.file(path).subscan(function (pa, isfile) {
+        if (!isfile) {
+            var n = pa.substring(path.length + 1, pa.length - 1);
             ls.push({
                 name: n,
-                path: pa.substring(0,pa.length-1),
+                path: pa.substring(0, pa.length - 1),
                 isout: false
             });
-        }else{
+        } else {
             if (pa.indexOf(".json") !== -1) {
                 queue.add(function (a, b) {
                     var tss = this;
@@ -289,7 +320,7 @@ topolrServer.prototype.listProjects = function () {
                         var n = JSON.parse(data);
                         ls.push({
                             name: n.name,
-                            path: n.path.substring(0,n.path.length-1),
+                            path: n.path.substring(0, n.path.length - 1),
                             isout: true
                         });
                         tss.next(n.name);
@@ -305,21 +336,21 @@ topolrServer.prototype.listProjects = function () {
 };
 topolrServer.prototype.listProjectsSync = function () {
     var path = this.basePath + "webapps", ths = this, ls = [];
-    topolr.file(path).subscan(function (pa,isfile) {
-        if(!isfile){
-            var n = pa.substring(path.length + 1,pa.length-1);
+    topolr.file(path).subscan(function (pa, isfile) {
+        if (!isfile) {
+            var n = pa.substring(path.length + 1, pa.length - 1);
             ls.push({
                 name: n,
-                path: pa.substring(0,pa.length-1),
+                path: pa.substring(0, pa.length - 1),
                 isout: false
             });
-        }else{
+        } else {
             if (pa.indexOf(".json") !== -1) {
-                var data=topolr.file(pa).readSync();
+                var data = topolr.file(pa).readSync();
                 var n = JSON.parse(data);
                 ls.push({
                     name: n.name,
-                    path: n.path.substring(0,n.path.length-1),
+                    path: n.path.substring(0, n.path.length - 1),
                     isout: true
                 });
             }
@@ -354,43 +385,43 @@ topolrServer.prototype.getAllRemoteProjects = function () {
     return ps;
 };
 topolrServer.prototype.removeProject = function (projectName) {
-    var path = this.basePath + "webapps"+"/"+projectName, ps=topolr.promise();
+    var path = this.basePath + "webapps" + "/" + projectName, ps = topolr.promise();
     if (projectName !== "ROOT") {
-        if(topolr.file(path+".json").isExists()){
-            topolr.file(path+".json").remove();
+        if (topolr.file(path + ".json").isExists()) {
+            topolr.file(path + ".json").remove();
             ps.resolve();
-        }else{
-            if(topolr.file(path).isExists()){
+        } else {
+            if (topolr.file(path).isExists()) {
                 topolr.file(path).remove();
                 ps.resolve();
             }
         }
     } else {
-        if(topolr.file(path+".json").isExists()){
-            topolr.file(path+".json").remove();
-        }else {
-            util.logger.log("actioncmd","Default ROOT can not remove");
+        if (topolr.file(path + ".json").isExists()) {
+            topolr.file(path + ".json").remove();
+        } else {
+            util.logger.log("actioncmd", "Default ROOT can not remove");
         }
         ps.resolve();
     }
     return ps;
 };
-topolrServer.prototype.editProject=function (projectName,path,remotePath) {
-    return this.createProject(projectName,path,remotePath);
+topolrServer.prototype.editProject = function (projectName, path, remotePath) {
+    return this.createProject(projectName, path, remotePath);
 };
-topolrServer.prototype.setServerConfig = function (prop,value) {
-    var a=this.serverConfig;
-    var b=prop.split("-");
-    var r=null,has=true;
-    for(var i=0;i<b.length;i++){
-        var c=b[i];
-        r=a[c];
-        if(r===undefined){
-            has=false;
+topolrServer.prototype.setServerConfig = function (prop, value) {
+    var a = this.serverConfig;
+    var b = prop.split("-");
+    var r = null, has = true;
+    for (var i = 0; i < b.length; i++) {
+        var c = b[i];
+        r = a[c];
+        if (r === undefined) {
+            has = false;
             break;
         }
     }
-    if(has) {
+    if (has) {
         if (value) {
             (new Function("data", "value", "data." + prop.replace(/\-/g, ".") + "=value;"))(a, value);
             var path = topolr.cpath.getRelativePath(__dirname + "/", "./../conf/server.json");
@@ -402,48 +433,66 @@ topolrServer.prototype.setServerConfig = function (prop,value) {
                 a(r);
             });
         }
-    }else{
-        return topolr.promise(function (a,b) {
+    } else {
+        return topolr.promise(function (a, b) {
             a("Prop can not find");
         });
     }
 };
 topolrServer.prototype.getServerConfig = function () {
     var ps = topolr.promise();
-    var r={};
-    for(var i in this.serverConfig){
-        var a=this.serverConfig[i];
-        if(topolr.is.isArray(a)){
-            r[i]=a.join(",");
-        }else if(topolr.is.isObject(a)){
-            for(var t in a){
-                r[i+"-"+t]=a[t];
+    var r = {};
+    for (var i in this.serverConfig) {
+        var a = this.serverConfig[i];
+        if (topolr.is.isArray(a)) {
+            r[i] = a.join(",");
+        } else if (topolr.is.isObject(a)) {
+            for (var t in a) {
+                r[i + "-" + t] = a[t];
             }
-        }else{
-            r[i]=a;
+        } else {
+            r[i] = a;
         }
     }
     ps.resolve(r);
     return ps;
 };
-topolrServer.prototype.getServerInfo=function () {
+topolrServer.prototype.getServerInfo = function () {
     return {
-        version:this.packageConfig.version,
-        "node version":process.version,
-        "install path":process.installPrefix||"unknow",
+        version: this.packageConfig.version,
+        "node version": process.version,
+        "install path": process.installPrefix || "unknow",
         platform: process.platform
     };
+};
+topolrServer.prototype.getPort=function () {
+    return this.serverConfig.port;
+};
+topolrServer.prototype.getProtocol=function () {
+    return this.http2?"https":"http";
+};
+topolrServer.prototype.getHost=function () {
+    var port = this.serverConfig.port;
+    return (this.serverConfig.host||"localhost") + (port !== "" && port != 80 ? ":" + port : "");
+};
+topolrServer.prototype.getURL=function () {
+    var port = this.serverConfig.port;
+    return this.getProtocol()+"://"+this.getHost();
 };
 
 var topolrserver = new topolrServer();
 global.TopolrServer = {
-    getServerURL:function () {
-        var port=topolrserver.serverConfig.port;
-        return "http://localhost"+(port!==""&&port!=80?":"+port:"");
+    getServerPort:function () {
+        return topolrserver.getPort();
     },
-    getServerHost:function () {
-        var port=topolrserver.serverConfig.port;
-        return "localhost"+(port!==""&&port!=80?":"+port:"");
+    getServerHost: function () {
+        return topolrserver.getHost();
+    },
+    getServerProtocol:function () {
+        return topolrserver.getProtocol();
+    },
+    getServerURL: function () {
+        return topolrserver.getURL();
     },
     getServerConfig: function () {
         return topolrserver.serverConfig;
@@ -456,17 +505,17 @@ global.TopolrServer = {
         try {
             r = fs.readFileSync(path, 'utf-8');
         } catch (e) {
-            util.logger.log("error",e);
+            util.logger.log("error", e);
         }
         return r;
     },
-    getProjects:function () {
+    getProjects: function () {
         return topolrserver.listProjectsSync();
     },
-    getServerInfo:function () {
+    getServerInfo: function () {
         return {
-            version:topolrserver.packageConfig.version,
-            node:process.version,
+            version: topolrserver.packageConfig.version,
+            node: process.version,
             platform: process.platform
         };
     },
@@ -481,8 +530,8 @@ global.TopolrServer = {
     }
 };
 process.on('uncaughtException', function (err) {
-    util.logger.log("error",err);
-    topolrserver._server&&topolrserver._server.close(function () {
+    util.logger.log("error", err);
+    topolrserver._server && topolrserver._server.close(function () {
         process.exit(1);
     });
 });
@@ -505,10 +554,10 @@ module.exports = {
     getServerConfig: function () {
         return topolrserver.getServerConfig();
     },
-    setServerConfig:function (prop,value) {
-        return topolrserver.setServerConfig(prop,value);
+    setServerConfig: function (prop, value) {
+        return topolrserver.setServerConfig(prop, value);
     },
-    getServerInfo:function () {
+    getServerInfo: function () {
         return topolrserver.getServerInfo();
     },
     getPathInfo: function () {

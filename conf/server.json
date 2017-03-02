@@ -1,5 +1,11 @@
 {
     "port": "8080",
+    "host":"localhost",
+    "http2":{
+        "enable":false,
+        "key":"{server}/conf/http2/test.org.key",
+        "cert":"{server}/conf/http2/test.org.crt"
+    },
     "modules": [
         "lib/base.js",
         "lib/comet.js",

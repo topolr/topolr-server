@@ -78,8 +78,7 @@ var project = function (path, name, isouter) {
     this._scope = {};
     this._session = {};
     this._listener=null;
-    var port = TopolrServer.getServerConfig().port;
-    this._baseurl = "http://localhost" + (port !== "" && port != 80 ? ":" + port : "") + "/" + this._name + "/";
+    this._baseurl = TopolrServer.getServerURL() + "/" + this._name + "/";
 };
 project.prototype.run = function (code) {
     var ths = this, ps = topolr.promise();
@@ -160,8 +159,7 @@ project.prototype.run = function (code) {
                 return ths._path;
             }
         });
-        pathc = topolr.cpath.getNormalizePath(pathc) + "/readme";
-        topolr.file(pathc).write("This folder is a upload cache directory of server. Project name is " + this._name + "(" + this._path + ")");
+        topolr.file(topolr.cpath.getNormalizePath(pathc)).makedir();
         return this.packetInit();
     }.bind(this)).fail(function (e) {
         console.error(e);

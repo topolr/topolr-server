@@ -111,7 +111,11 @@ var logger = {
     },
     startserver: function (info) {
         console.log("");
-        topolr.log(" (color:11=>SERVER STARTED[:{{port}}])", info);
+        if(info.http2){
+            topolr.log(" (color:11=>SERVER STARTED WITH HTTP2[:{{port}}])", info);
+        }else {
+            topolr.log(" (color:11=>SERVER STARTED[:{{port}}])", info);
+        }
         console.log("");
     },
     request: function (info) {
