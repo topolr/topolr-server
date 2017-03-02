@@ -151,20 +151,37 @@ project.prototype.run = function (code) {
             console.error(e);
         }
     });
-    return topolr.file(this._path + "WEBINF" + Path.sep + "web.json").read().then(function (data) {
-        this.config = new projectConfig(JSON.parse(data), this._path);
-        var pathc = this.config.getUploadInfo().temp.replace(/\{[a-zA-Z]+\}/g, function (a) {
-            a = a.substring(1, a.length - 1);
-            if (a === "project") {
-                return ths._path;
-            }
-        });
-        topolr.file(topolr.cpath.getNormalizePath(pathc)).makedir();
-        return this.packetInit();
-    }.bind(this)).fail(function (e) {
-        console.error(e);
-        console.error("[corgi] can not find web.json with path of " + this._path);
-    }.bind(this));
+    var webconfigpath=this._path + "WEBINF" + Path.sep + "web.json";
+    if(topolr.file(webconfigpath).isExists()) {
+        return topolr.file(this._path + "WEBINF" + Path.sep + "web.json").read().then(function (data) {
+            this.config = new projectConfig(JSON.parse(data), this._path);
+            var pathc = this.config.getUploadInfo().temp.replace(/\{[a-zA-Z]+\}/g, function (a) {
+                a = a.substring(1, a.length - 1);
+                if (a === "project") {
+                    return ths._path;
+                }
+            });
+            topolr.file(topolr.cpath.getNormalizePath(pathc)).makedir();
+            return this.packetInit();
+        }.bind(this)).fail(function (e) {
+            util.logger.log("error", "can not find web.json with path of " + this._path);
+        }.bind(this));
+    }else{
+        return topolr.promise(function (a) {
+            this.config = new projectConfig({
+                page:{
+                    index:"index.html"
+                },
+                filter: [],
+                service:[]
+            },this._path);
+            a();
+        }).scope(this).then(function () {
+            return this.packetInit();
+        }).fail(function (e) {
+            util.logger.log("error", "init project error " + this._path);
+        }.bind(this));
+    }
 };
 project.prototype.stop = function () {
     return this.stopService();
