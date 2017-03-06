@@ -509,6 +509,9 @@ global.TopolrServer = {
         }
         return r;
     },
+    getMimeType:function (suffix) {
+        return this.webConfig.mime[suffix];
+    },
     getProjects: function () {
         return topolrserver.listProjectsSync();
     },
@@ -527,6 +530,9 @@ global.TopolrServer = {
             serverConfigPath: topolrserver.serverConfigPath,
             webConfigPath: topolrserver.webConfigPath
         };
+    },
+    getDefaultPagePath:function (code) {
+        return topolrserver.webConfig.page[code]?(process.cwd()+"/"+topolrserver.webConfig.page[code]):null;
     }
 };
 process.on('uncaughtException', function (err) {
