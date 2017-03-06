@@ -505,7 +505,6 @@ global.TopolrServer = {
         try {
             r = fs.readFileSync(path, 'utf-8');
         } catch (e) {
-            util.logger.log("error", e);
         }
         return r;
     },
