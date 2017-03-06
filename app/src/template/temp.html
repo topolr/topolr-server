@@ -1,0 +1,26 @@
+<!--[codetab]-->
+<div class="codetabs">
+    <%for(var i in data.tabs){%>
+    <div class="codetab-title" data-find="title" data-bind="click:title"><%=data.tabs[i];%></div>
+    <%}%>
+</div>
+<div class="codecontent">
+    <%for(var i in data.codes){%>
+    <div class="codecontnet-code" data-find="content" @cache(data.codes[i])></div>
+    <%}%>
+</div>
+<!--[navsfixed]-->
+<div class="row mid-fix">
+    <div class="span1-1">
+        <div class="navsfixed-logo">
+            <img src="<%=data.logopath;%>"/>
+        </div>
+        <div class="navsfixed-items">
+            <a class="navsfixed-items-item" href="#"><i class="fa fa-home"></i> Home</a>
+            <a class="navsfixed-items-item" href="#"><i class="fa fa-rocket"></i> Tutorial</a>
+            <a class="navsfixed-items-item" href="#"><i class="fa fa-flag"></i> Blog</a>
+            <a class="navsfixed-items-item" href="#"><i class="fa fa-adn"></i> API</a>
+            <a class="navsfixed-items-item" href="#"><i class="fa fa-github"></i> Github</a>
+        </div>
+    </div>
+</div>

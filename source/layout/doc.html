@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="<%=data.sitePath;%>assets/style/reset.scss">
+    <link rel="stylesheet" href="<%=data.sitePath;%>assets/style/grid.css">
+    <link rel="stylesheet" href="<%=data.sitePath;%>assets/style/page.css">
+    <link rel="stylesheet" href="<%=data.sitePath;%>assets/style/font.css">
+    <link rel="stylesheet" href="<%=data.sitePath;%>assets/style/github.markdown.css">
+    <script src="<%=data.sitePath;%>app/topolr.js"></script>
+    <script>
+        App({
+            "sitePath": "<%=data.sitePath;%>",
+            "basePath": "app/src/",
+            "title": "demo",
+            "description": "demo",
+            "boot": "option.root.site"
+        }).boot(true);
+    </script>
+</head>
+<body>
+<@module name="subheader"/>
+<div class="row mid-fix body">
+    <div class="span1-5">
+        <div class="sortlist">
+            <%
+            var sortlist=data.getContainer().sortList;
+            for(var i=0;i<sortlist.length;i++){
+            %>
+            <div class="sortlist-item">
+                <div class="sortlist-item-title"><%=sortlist[i].name;%></div>
+                <div class="sortlist-item-body">
+                    <%
+                    var doclist=data.getContainer().getDocListBySort(sortlist[i].getSortFullName());
+                    for(var t=0;t<doclist.length;t++){
+                    %>
+                    <div class="sortlist-item-body-item"><a href="<%=doclist[t].getURL();%>"><%=doclist[t].linkname;%></a></div>
+                    <%
+                    }
+                    %>
+                </div>
+            </div>
+            <%}%>
+        </div>
+    </div>
+    <div class="span4-5">
+        <div class="markdown-body">
+            <%=data.contentHTML;%>
+        </div>
+    </div>
+</div>
+<@module name="footer"/>
+</body>
+</html>

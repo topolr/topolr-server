@@ -1,0 +1,66 @@
+@import "base.scss";
+.codetab{
+  @include absolute;
+  @include shadow(0 1px 4px 0 rgba(0,0,0,0.20));
+  /*border:1px solid #D7D7D7;*/
+  margin:10px;
+  background:white;
+  .codetabs{
+    line-height:45px;
+    border-bottom:1px solid #EBEBEB;
+    .codetab-title{
+      @include inlineblock;
+      padding:0 15px 0 15px;
+      color:#D8D8D8;
+      cursor:default;
+      &.active{
+        color:black;
+      }
+    }
+  }
+
+  .codecontent{
+    @include absolute(45px,0,5px,0);
+    overflow:hidden;
+    .codecontnet-code{
+      font-size: 12px;
+      @include absolute;
+      display:none;
+      overflow:hidden;
+      &.active{
+        display:block;
+      }
+      &:hover{
+        overflow:auto;
+      }
+    }
+  }
+  .codefoot{
+    height:5px;
+    border-top:1px solid #EBEBEB;
+    @include absolute(auto,0,0,0);
+    background:#F5F5F5;
+  }
+  .codetab-loading{
+    width:50px;
+    line-height:50px;
+    text-align: center;
+    background:white;
+    @include absolute(50%,auto,auto,50%);
+    margin-left:-25px;
+    margin-top:-25px;
+    border:1px solid #D7D7D7;
+    @include shadow(0 1px 4px 0 rgba(0,0,0,0.20));
+    z-index:99999;
+    @include borderadius(5px);
+  }
+}
+.footbtn{
+  padding:50px 0 50px 0;
+  text-align: center;
+  .footbtn-btn{
+    padding:0 10px 0 10px;
+    line-height:35px;
+    display:inline-block;
+  }
+}

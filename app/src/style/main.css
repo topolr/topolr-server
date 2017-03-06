@@ -1,0 +1,85 @@
+.codetab {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+  -ms-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+  /*border:1px solid #D7D7D7;*/
+  margin: 10px;
+  background: white; }
+  .codetab .codetabs {
+    line-height: 45px;
+    border-bottom: 1px solid #EBEBEB; }
+    .codetab .codetabs .codetab-title {
+      display: inline-block;
+      vertical-align: top;
+      padding: 0 15px 0 15px;
+      color: #D8D8D8;
+      cursor: default; }
+      .codetab .codetabs .codetab-title.active {
+        color: black; }
+  .codetab .codecontent {
+    position: absolute;
+    left: 0;
+    top: 45px;
+    right: 0;
+    bottom: 5px;
+    overflow: hidden; }
+    .codetab .codecontent .codecontnet-code {
+      font-size: 12px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      display: none;
+      overflow: hidden; }
+      .codetab .codecontent .codecontnet-code.active {
+        display: block; }
+      .codetab .codecontent .codecontnet-code:hover {
+        overflow: auto; }
+  .codetab .codefoot {
+    height: 5px;
+    border-top: 1px solid #EBEBEB;
+    position: absolute;
+    left: 0;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    background: #F5F5F5; }
+  .codetab .codetab-loading {
+    width: 50px;
+    line-height: 50px;
+    text-align: center;
+    background: white;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    margin-left: -25px;
+    margin-top: -25px;
+    border: 1px solid #D7D7D7;
+    -webkit-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+    -ms-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+    z-index: 99999;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    border-radius: 5px; }
+
+.footbtn {
+  padding: 50px 0 50px 0;
+  text-align: center; }
+  .footbtn .footbtn-btn {
+    padding: 0 10px 0 10px;
+    line-height: 35px;
+    display: inline-block; }
+
+/*# sourceMappingURL=main.css.map */
