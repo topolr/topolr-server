@@ -153,7 +153,7 @@ project.prototype.run = function (code) {
     });
     var webconfigpath=this._path + "WEBINF" + Path.sep + "web.json";
     if(topolr.file(webconfigpath).isExists()) {
-        return topolr.file(this._path + "WEBINF" + Path.sep + "web.json").read().then(function (data) {
+        return topolr.file(webconfigpath).read().then(function (data) {
             this.config = new projectConfig(JSON.parse(data), this._path);
             var pathc = this.config.getUploadInfo().temp.replace(/\{[a-zA-Z]+\}/g, function (a) {
                 a = a.substring(1, a.length - 1);
