@@ -8,8 +8,6 @@
 -->
 ## packet
 
-# packetName
-
 <div class="row">
     <div class="span1-2">
         <div style="height:400px;position:relative">
