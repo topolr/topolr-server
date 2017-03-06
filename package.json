@@ -1,43 +1,28 @@
 {
-  "name": "topolr-server",
-  "version": "0.0.16",
-  "description": "A web server of topolr.",
-  "main": "lib/server.js",
-  "bin": {
-    "corgiserver": "bin/cli.js"
+  "name": "topolr",
+  "version": "1.3.8",
+  "description": "A web framework",
+  "main": "app/topolr.js",
+  "scripts": {
+    "built": "node bin/built.js"
   },
-  "license": "MIT",
-  "keywords": [
-    "webserver",
-    "mvc",
-    "functional",
-    "server",
-    "topolr"
-  ],
-  "author": "hou80houzhu",
-  "contributors": [],
   "repository": {
     "type": "git",
-    "url": "https://git.oschina.net/hou80houzhu/topolr-server.git"
+    "url": "git+https://github.com/topolr/topolr.git"
   },
-  "dependencies": {
-    "events": "^1.1.0",
-    "formidable": "^1.0.17",
-    "http2": "^3.3.6",
-    "lazy": "^1.0.11",
-    "mysql": "^2.10.2",
-    "nedb": "^1.8.0",
-    "request": "^2.69.0",
-    "stream": "0.0.2",
-    "topolr-cetus": "^0.2.3",
-    "topolr-mock": "^0.1.0",
-    "topolr-router": "^0.0.1",
-    "topolr-util": "^0.1.17"
-  },
+  "keywords": [
+    "topolr",
+    "web",
+    "framework"
+  ],
+  "author": "hou80houzhu",
+  "license": "MIT",
   "bugs": {
-    "url": "https://git.oschina.net/hou80houzhu/topolr-server/issues"
+    "url": "https://github.com/topolr/topolr/issues"
   },
-  "homepage": "https://git.oschina.net/hou80houzhu/topolr-server#readme",
-  "devDependencies": {},
-  "scripts": {}
+  "homepage": "https://github.com/topolr/topolr#readme",
+  "dependencies": {
+    "topolr-util": "^0.1.17",
+    "uglify-js": "~2.5.0"
+  }
 }
