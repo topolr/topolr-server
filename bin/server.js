@@ -394,6 +394,8 @@ topolrServer.prototype.removeProject = function (projectName) {
             if (topolr.file(path).isExists()) {
                 topolr.file(path).remove();
                 ps.resolve();
+            }else{
+                ps.resolve();
             }
         }
     } else {
@@ -554,7 +556,7 @@ module.exports = {
         return topolrserver.listProjects();
     },
     remove: function (projectName) {
-        topolrserver.removeProject(projectName);
+        return topolrserver.removeProject(projectName);
     },
     getServerConfig: function () {
         return topolrserver.getServerConfig();
