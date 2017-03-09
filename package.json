@@ -1,6 +1,6 @@
 {
   "name": "topolr-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A web server of topolr.",
   "main": "lib/server.js",
   "bin": {
@@ -33,8 +33,8 @@
     "request": "^2.69.0",
     "stream": "0.0.2",
     "topolr-cetus": "^1.0.0",
-    "topolr-mock": "^0.1.0",
-    "topolr-router": "^0.0.1",
+    "topolr-mock": "^1.0.0",
+    "topolr-router": "^1.0.0",
     "topolr-util": "^1.0.0"
   },
   "bugs": {
