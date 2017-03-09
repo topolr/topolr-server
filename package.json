@@ -1,10 +1,10 @@
 {
   "name": "topolr-server",
-  "version": "0.0.16",
+  "version": "1.0.0",
   "description": "A web server of topolr.",
   "main": "lib/server.js",
   "bin": {
-    "corgiserver": "bin/cli.js"
+    "topolr-server": "bin/cli.js"
   },
   "license": "MIT",
   "keywords": [
@@ -14,11 +14,14 @@
     "server",
     "topolr"
   ],
-  "author": "hou80houzhu",
+  "author": {
+    "name": "WangJinliang(hou80houzhu)",
+    "email": "hou80houzhu@vip.qq.com"
+  },
   "contributors": [],
   "repository": {
     "type": "git",
-    "url": "https://git.oschina.net/hou80houzhu/topolr-server.git"
+    "url": "https://github.com/topolr/topolr-server.git"
   },
   "dependencies": {
     "events": "^1.1.0",
@@ -29,15 +32,15 @@
     "nedb": "^1.8.0",
     "request": "^2.69.0",
     "stream": "0.0.2",
-    "topolr-cetus": "^0.2.3",
+    "topolr-cetus": "^1.0.0",
     "topolr-mock": "^0.1.0",
     "topolr-router": "^0.0.1",
-    "topolr-util": "^0.1.17"
+    "topolr-util": "^1.0.0"
   },
   "bugs": {
-    "url": "https://git.oschina.net/hou80houzhu/topolr-server/issues"
+    "url": "https://github.com/topolr/topolr-server/issues"
   },
-  "homepage": "https://git.oschina.net/hou80houzhu/topolr-server#readme",
+  "homepage": "http://topolr.org",
   "devDependencies": {},
   "scripts": {}
 }
