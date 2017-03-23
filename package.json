@@ -1,6 +1,6 @@
 {
   "name": "topolr-server",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A web server of topolr.",
   "main": "lib/server.js",
   "bin": {
@@ -43,6 +43,6 @@
   "homepage": "http://topolr.org",
   "devDependencies": {},
   "scripts": {
-    "server":"node bin/cli"
+    "start":"node bin/cli"
   }
 }
