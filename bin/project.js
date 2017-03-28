@@ -72,7 +72,7 @@ projectConfig.prototype.getListenerPacket=function () {
 var project = function (path, name, isouter) {
     this._isouter = isouter;
     this._name = name;
-    this._path = path;
+    this._path = path.replace(/\\/g,"/");
     this._server = null;
     this._services = {};
     this._filters = [];
@@ -315,7 +315,7 @@ project.prototype.doFilters = function (request, response, fn) {
         } else {
             path = ths._path.substring(0, ths._path.length - ths._name.length - 2) + request.getURL();
         }
-        var a = ths.getModule("fileview", {request: request, response: response, data: path});
+        var a = ths.getModule("fileview", {request: request, response: response, path: path});
         if (request.getURL() === "/") {
             a = ths.getModule("defaultPageView", {request: request, response: response, code: "index"});
         }
