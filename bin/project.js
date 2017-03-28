@@ -12,6 +12,9 @@ var projectConfig = function (data, path) {
     topolr.extend(this._data.spider, TopolrServer.getWebConfig().spider);
     this._basepath = path;
 };
+projectConfig.prototype.getDefaultSuffix=function () {
+    return this._data.defaultSuffix||TopolrServer.getWebConfig().defaultSuffix;
+};
 projectConfig.prototype.getService = function (name) {
     if (this._data.service) {
         var r = null;
@@ -50,6 +53,9 @@ projectConfig.prototype.getPagePath = function (name) {
     }
     return null;
 };
+projectConfig.prototype.getBasePath=function(){
+    return this._basepath;
+},
 projectConfig.prototype.hasPage = function (name) {
     return this._data.page ? (this._data.page[name] !== undefined) : false;
 };
@@ -173,7 +179,7 @@ project.prototype.run = function (code) {
         return topolr.promise(function (a) {
             this.config = new projectConfig({
                 page:{
-                    index:"index.html"
+                    index:"index."+TopolrServer.getWebConfig().defaultSuffix
                 },
                 filter: [],
                 service:[]
@@ -309,17 +315,7 @@ project.prototype.doFilters = function (request, response, fn) {
         });
         queue.run(null);
     } else {
-        var path = "";
-        if (ths._name === "ROOT") {
-            path = ths._path + request.getURL();
-        } else {
-            path = ths._path.substring(0, ths._path.length - ths._name.length - 2) + request.getURL();
-        }
-        var a = ths.getModule("fileview", {request: request, response: response, path: path});
-        if (request.getURL() === "/") {
-            a = ths.getModule("defaultPageView", {request: request, response: response, code: "index"});
-        }
-        fn && fn(a);
+        fn && fn(ths.getModule("fileview", {request: request, response: response, path: request.getProjectURL()}));
     }
 };
 project.prototype.doListener=function () {

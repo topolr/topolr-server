@@ -140,6 +140,13 @@ request.prototype.removeAllAttr = function () {
 request.prototype.getURL = function () {
     return this._url;
 };
+request.prototype.getProjectURL=function () {
+    if(this._context.name==="ROOT"){
+        return this._url;
+    }else{
+        return this._url.substring(this._context._name.length+1);
+    }
+},
 request.prototype.getContext = function () {
     return this._context;
 };

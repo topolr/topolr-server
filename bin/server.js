@@ -534,6 +534,9 @@ global.TopolrServer = {
     },
     getDefaultPagePath:function (code) {
         return topolrserver.webConfig.page[code]?(process.cwd()+"/"+topolrserver.webConfig.page[code]):null;
+    },
+    getDefaultSuffix:function () {
+        return topolrserver.webConfig.defaultSuffix;
     }
 };
 process.on('uncaughtException', function (err) {
