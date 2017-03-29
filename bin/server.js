@@ -289,6 +289,7 @@ topolrServer.prototype.stopSessionWatcher = function () {
 }
 
 topolrServer.prototype.createProject = function (name, path, remotePath) {
+    path=path.replace(/\\/g,"/");
     if (path[path.length - 1] !== "/") {
         path = path + "/";
     }
