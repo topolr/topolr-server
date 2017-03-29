@@ -12,7 +12,7 @@ var topolrServer = function () {
     this.serverConfig = require("../conf/server");
     this.webConfig = require("../conf/web");
     this.packageConfig = require("../package");
-    this.basePath = topolr.cpath.getNormalizePath(process.cwd()) + "/";
+    this.basePath=Path.resolve(__dirname,"./../").replace(/\\/g,"/")+"/";
     this.version = this.packageConfig.version;
     this.projects = {};
     this._server = null;
@@ -533,7 +533,7 @@ global.TopolrServer = {
         };
     },
     getDefaultPagePath:function (code) {
-        return topolrserver.webConfig.page[code]?(process.cwd()+"/"+topolrserver.webConfig.page[code]):null;
+        return topolrserver.webConfig.page[code]?(topolrserver.basePath+topolrserver.webConfig.page[code]):null;
     },
     getDefaultSuffix:function () {
         return topolrserver.webConfig.defaultSuffix;
