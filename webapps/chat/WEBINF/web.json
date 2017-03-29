@@ -16,13 +16,7 @@
             "keeptime":3000,
             "handler":"comethandler.testhandler"
         }},
-        {"name":"mvcservice"},
-        {"name":"proxyservice","option":{
-            "baidu":{
-                "host":"www.baidu.com",
-                "timeout":300000
-            }
-        }}
+        {"name":"mvcservice"}
     ],
     "filter":[
         {"name":"mvcfilter"},
