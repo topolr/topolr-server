@@ -255,6 +255,7 @@ topolrServer.prototype.triggerProject = function (prj, reqt, resp, res) {
 topolrServer.prototype.doResponse = function (view, reqt, resp, res) {
     var serverName = "topolr " + this.version;
     view.doRender(function () {
+        console.log("=====>>ooo<<=====")
         var cstr = resp._cookie.getCookieString();
         if (cstr) {
             resp._headers["Set-Cookie"] = cstr;
@@ -272,6 +273,8 @@ topolrServer.prototype.doResponse = function (view, reqt, resp, res) {
             }
             res.end();
         }
+    },function (e) {
+        console.log(e)
     });
 };
 topolrServer.prototype.startSessionWatcher = function () {

@@ -274,19 +274,17 @@ project.prototype.doFilters = function (request, response, fn) {
     if (this.config._data.filter && this.config._data.filter.length > 0) {
         var queue = topolr.queue();
         queue.complete(function (a) {
-            if (!a || !a.typeOf || !a.typeOf("view")) {
-                if (!a) {
-                    var path = "";
-                    if (ths._name === "ROOT") {
-                        path = ths._path + request.getURL();
-                    } else {
-                        path = ths._path.substring(0, ths._path.length - ths._name.length - 1) + request.getURL();
-                    }
-                    a = ths.getModule("fileview", {request: request, response: response, data: path});
+            if (!a) {
+                var path = "";
+                if (ths._name === "ROOT") {
+                    path = ths._path + request.getURL();
+                } else {
+                    path = ths._path.substring(0, ths._path.length - ths._name.length - 1) + request.getURL();
                 }
-                if (!a.typeOf || !a.typeOf("view")) {
-                    a = ths.getModule("errorview", {request: request, response: response});
-                }
+                a = ths.getModule("fileview", {request: request, response: response, data: path});
+            }
+            if (!a.typeOf || !a.typeOf("view")) {
+                a = ths.getModule("errorview", {request: request, response: response});
             }
             fn && fn(a);
         });
@@ -315,7 +313,7 @@ project.prototype.doFilters = function (request, response, fn) {
         });
         queue.run(null);
     } else {
-        fn && fn(ths.getModule("fileview", {request: request, response: response, path: request.getProjectURL()}));
+        fn && fn(ths.getModule("fileview", {request: request, response: response, path: request.getProjectURL().split("?")[0]}).render());
     }
 };
 project.prototype.doListener=function () {
