@@ -215,7 +215,9 @@ topolrServer.prototype.doPostRequest = function (req, res) {
     form.maxFieldsSize = uploadInfo.max;
     form.on('error', function (err) {
         util.logger.log("error", err);
-        ths.doResponse(info.project.error(err), info.request, info.response, res);
+        info.project.error(err).then(function () {
+            ths.doResponse(info.request, info.response, res);
+        });
     }).on('field', function (field, value) {
         if (form.type === 'multipart') {
             if (field in post) {
@@ -248,34 +250,29 @@ topolrServer.prototype.doRequest = function (req, res) {
 };
 topolrServer.prototype.triggerProject = function (prj, reqt, resp, res) {
     var ths = this;
-    prj.trigger(reqt, resp, res).then(function (a) {
-        ths.doResponse(a, reqt, resp, res);
+    prj.trigger(reqt, resp, res).then(function () {
+        ths.doResponse(reqt, resp, res);
     });
 };
-topolrServer.prototype.doResponse = function (view, reqt, resp, res) {
+topolrServer.prototype.doResponse = function (reqt, resp, res) {
     var serverName = "topolr " + this.version;
-    view.doRender(function () {
-        console.log("=====>>ooo<<=====")
-        var cstr = resp._cookie.getCookieString();
-        if (cstr) {
-            resp._headers["Set-Cookie"] = cstr;
+    var cstr = resp._cookie.getCookieString();
+    if (cstr) {
+        resp._headers["Set-Cookie"] = cstr;
+    }
+    resp._headers["Server"] = serverName;
+    if (resp._statusCode === "index") {
+        resp._statusCode = "200";
+    }
+    res.writeHead(resp._statusCode, resp._headers);
+    if (resp._pipe) {
+        resp._pipe.pipe(res);
+    } else {
+        if (resp._data) {
+            res.write.apply(res, resp._data);
         }
-        resp._headers["Server"] = serverName;
-        if (resp._statusCode === "index") {
-            resp._statusCode = "200";
-        }
-        res.writeHead(resp._statusCode, resp._headers);
-        if (resp._pipe) {
-            resp._pipe.pipe(res);
-        } else {
-            if (resp._data) {
-                res.write.apply(res, resp._data);
-            }
-            res.end();
-        }
-    },function (e) {
-        console.log(e)
-    });
+        res.end();
+    }
 };
 topolrServer.prototype.startSessionWatcher = function () {
     var tout = this.webConfig.session.timeout;

@@ -72,6 +72,7 @@ var response = function (res) {
     this._statusCode = 200;
     this._data = null;
     this._pipe = null;
+    this._statedata={};
 };
 response.prototype.setHeader = function (key, value) {
     this._headers[key] = value;
@@ -109,8 +110,21 @@ response.prototype.pipe = function (a) {
     this._pipe = a;
     return this;
 };
+response.prototype.getFileStream=function () {
+    return this._pipe;
+};
 response.prototype.getContent = function () {
     return this._data;
+};
+response.prototype.setStateData=function (key,value) {
+    this._statedata[key]=value;
+    return this;
+};
+response.prototype.getStateData=function (key) {
+    return this._statedata[key];
+};
+response.prototype.hasStateData=function (key) {
+    return this._statedata[key]!==undefined&&this._statedata[key]!==null;
 }
 
 module.exports = function (res) {

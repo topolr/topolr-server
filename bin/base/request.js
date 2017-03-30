@@ -141,7 +141,7 @@ request.prototype.getURL = function () {
     return this._url;
 };
 request.prototype.getProjectURL=function () {
-    if(this._context.name==="ROOT"){
+    if(this._context._name==="ROOT"){
         return this._url;
     }else{
         return this._url.substring(this._context._name.length+1);
@@ -163,7 +163,7 @@ request.prototype.isGetRequest = function () {
     return this.getMethod() === "get";
 };
 request.prototype.getHttpPath = function () {
-    var t = this._project_;
+    var t = this.getContext()._name;
     if (t === "ROOT") {
         t = "";
     }

@@ -249,8 +249,8 @@ project.prototype.trigger = function (request, response, res) {
     request._context = this;
     var domainer = domain.create();
     domainer.run(function () {
-        ths.doFilters(request, response, function (a) {
-            ps.resolve(a);
+        ths.doFilters(request, response, function () {
+            ps.resolve();
         });
     });
     domainer.on('error', function (e) {
@@ -268,53 +268,100 @@ project.prototype.getModule = function (packetName, option) {
         throw Error("[packet] can not find the module of " + packetName);
     }
 };
-project.prototype.doFilters = function (request, response, fn) {
-    var ths = this;
-    request._project_ = ths._name;
-    if (this.config._data.filter && this.config._data.filter.length > 0) {
-        var queue = topolr.queue();
+project.prototype.doFilters=function (request,response,fn) {
+    var ths=this;
+    this.doFrontFilters(request,response).then(function (a) {
+        if (!a||!a.typeOf || !a.typeOf("view")) {
+            a = ths.getModule("errorview", {request: request, response: response});
+        }
+        return a;
+    }).then(function (a) {
+        return a.render();
+    }).then(function () {
+        return ths.doEndFilters(request,response);
+    }).then(function () {
+        fn&&fn();
+    },function (a) {
+        console.log(a)
+    });
+};
+project.prototype.doFrontFilters=function (request,response) {
+    var ps=topolr.promise(),ths=this,a=[];
+    this.config._data.filter.forEach(function (filter) {
+        var packet = filter.name, option = filter.option;
+        var mod = ths.getModule(packet, option);
+        if (mod.typeOf("filter")&&mod.position==="front") {
+            a.push(mod);
+        }
+    });
+    if(a.length>0) {
+        var queue=topolr.queue();
         queue.complete(function (a) {
-            if (!a) {
-                var path = "";
-                if (ths._name === "ROOT") {
-                    path = ths._path + request.getURL();
-                } else {
-                    path = ths._path.substring(0, ths._path.length - ths._name.length - 1) + request.getURL();
-                }
-                a = ths.getModule("fileview", {request: request, response: response, data: path});
-            }
-            if (!a.typeOf || !a.typeOf("view")) {
-                a = ths.getModule("errorview", {request: request, response: response});
-            }
-            fn && fn(a);
+            ps.resolve(a);
         });
-        this.config._data.filter.forEach(function (filter) {
-            var packet = filter.name, option = filter.option;
-            var mod = ths.getModule(packet, option);
-            if (mod.typeOf("filter")) {
-                mod.request = request;
-                mod.response = response;
-                queue.add(function (data, mode) {
-                    var q = this;
-                    try {
-                        mode.doFilter(data, function (a) {
-                            q.next(a);
-                        }, function () {
-                            q.end(a);
-                        });
-                    } catch (e) {
-                        console.error(e.stack);
-                        q.next(ths.getModule("errorview", {request: request, response: response, data: e.stack}));
-                    }
-                }, function () {
-                    this.next();
-                }, mod);
-            }
+        a.forEach(function (mod) {
+            mod.request = request;
+            mod.response = response;
+            queue.add(function (data, mode) {
+                var q = this;
+                try {
+                    mode.doFilter(data, function (a) {
+                        q.next(a);
+                    }, function () {
+                        q.end(a);
+                    });
+                } catch (e) {
+                    console.error(e.stack);
+                    q.next(ths.getModule("errorview", {request: request, response: response, data: e.stack}));
+                }
+            }, function () {
+                this.next();
+            }, mod);
         });
         queue.run(null);
-    } else {
-        fn && fn(ths.getModule("fileview", {request: request, response: response, path: request.getProjectURL().split("?")[0]}).render());
+    }else{
+        ps.resolve(this.getModule("fileview", {request: request, response: response, path: request.getProjectURL().split("?")[0]}));
     }
+    return ps;
+};
+project.prototype.doEndFilters=function (request,response) {
+    var ps=topolr.promise(),a=[],ths=this;
+    this.config._data.filter.forEach(function (filter) {
+        var packet = filter.name, option = filter.option;
+        var mod = ths.getModule(packet, option);
+        if (mod.typeOf("filter")&&mod.position==="end") {
+            a.push(mod);
+        }
+    });
+    if(a.length>0) {
+        var queue=topolr.queue();
+        queue.complete(function (a) {
+            ps.resolve(a);
+        });
+        a.forEach(function (mod) {
+            mod.request = request;
+            mod.response = response;
+            queue.add(function (data, mode) {
+                var q = this;
+                try {
+                    mode.doFilter(data, function (a) {
+                        q.next(a);
+                    }, function () {
+                        q.end(a);
+                    });
+                } catch (e) {
+                    console.error(e.stack);
+                    q.next(ths.getModule("errorview", {request: request, response: response, data: e.stack}));
+                }
+            }, function () {
+                this.next();
+            }, mod);
+        });
+        queue.run();
+    }else{
+        ps.resolve(null);
+    }
+    return ps;
 };
 project.prototype.doListener=function () {
     var name=this.config.getListenerPacket();
@@ -394,7 +441,7 @@ project.prototype.getConfig = function () {
     return this.config;
 };
 project.prototype.error = function (request, response, e) {
-    return this.getModule("errorview", {request: request, response: response, data: e.stack});
+    return this.getModule("errorview", {request: request, response: response, data: e.stack}).render();
 };
 
 module.exports = function (path, name, isouter) {
