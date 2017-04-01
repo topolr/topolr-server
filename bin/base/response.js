@@ -125,7 +125,7 @@ response.prototype.getStateData=function (key) {
 };
 response.prototype.hasStateData=function (key) {
     return this._statedata[key]!==undefined&&this._statedata[key]!==null;
-}
+};
 
 module.exports = function (res) {
     return new response(res);
