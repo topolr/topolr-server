@@ -1,5 +1,18 @@
 var topolr=require("topolr-util");
-var cookie = require("./cookie");
+var cookie = function (str) {
+    this._str = str;
+    this._info = {};
+    if (str) {
+        this._str.split(';').forEach(function (Cookie) {
+            var parts = Cookie.split('=');
+            this._info[ parts[ 0 ].trim() ] = (parts[ 1 ] || '').trim();
+        }.bind(this));
+    }
+};
+cookie.prototype.get = function (key) {
+    return this._info[key];
+};
+
 var header = function (arr) {
     this._headers = {};
     if(topolr.is.isArray(arr)) {
@@ -40,7 +53,7 @@ header.prototype.getAcceptLanguage = function () {
     return this._headers["accept-language"];
 };
 header.prototype.getCookie = function () {
-    return cookie(this._headers.cookie);
+    return new cookie(this._headers.cookie);
 };
 header.prototype.getCookieContent=function(){
     return this._headers["cookie"];
@@ -65,6 +78,9 @@ var request = function (req, data) {
     this._url = data.url;
     this._realreq = req;
     this._attr = {};
+    this._files={};
+    this._posts={};
+    this._gets={};
     this._clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
 };
 request.prototype.getRealRequest = function () {
@@ -210,7 +226,16 @@ request.prototype.isSpider = function () {
 };
 request.prototype.getClientIp=function () {
     return this._clientIp;
-}
+};
+request.prototype.getPostData=function () {
+    return topolr.extend({},this._posts);
+};
+request.prototype.getGetData=function () {
+    return topolr.extend({},this._gets);
+};
+request.prototype.getMultipartData=function () {
+    return topolr.extend({},this._files);
+};
 
 module.exports = function (req, data) {
     return new request(req, data);

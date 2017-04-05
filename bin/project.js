@@ -88,6 +88,7 @@ var project = function (path, name, isouter) {
     this._session = {};
     this._listener=null;
     this._baseurl = TopolrServer.getServerURL() + "/" + this._name + "/";
+    this._localpath="/" + this._name;
 };
 project.prototype.run = function (code) {
     var ths = this, ps = topolr.promise();
@@ -127,6 +128,9 @@ project.prototype.run = function (code) {
                 },
                 getLocalURL: function () {
                     return ths._baseurl;
+                },
+                getLocalPath:function () {
+                    return ths._localpath;
                 },
                 getListener:function () {
                     return ths._listener;
@@ -235,7 +239,7 @@ project.prototype.trigger = function (request, response, res) {
         var k = session(sid);
         request._session = k;
         this._session[sid] = k;
-        response.setCookie(idkey,sid);
+        response.addCookie(idkey,sid);
         try {
             this._listener.sessionCreated && this._listener.sessionCreated(k);
         }catch(e){
@@ -247,6 +251,7 @@ project.prototype.trigger = function (request, response, res) {
     }
     var ps = topolr.promise(), ths = this;
     request._context = this;
+    response._context=this;
     var domainer = domain.create();
     domainer.run(function () {
         ths.doFilters(request, response, function () {
@@ -441,7 +446,7 @@ project.prototype.getConfig = function () {
     return this.config;
 };
 project.prototype.error = function (request, response, e) {
-    return this.getModule("errorview", {request: request, response: response, data: e.stack}).render();
+    return this.getModule("errorview", {request: request, response: response, data: e?e.stack:[]}).render();
 };
 
 module.exports = function (path, name, isouter) {

@@ -232,7 +232,11 @@ topolrServer.prototype.doPostRequest = function (req, res) {
     }).on('file', function (field, _file) {
         file[field] = _file;
     }).on('end', function () {
-        info.request._data = topolr.extend({}, topolr.serialize.queryObject(req.url), post, file);
+        var _get=topolr.serialize.queryObject(req.url);
+        info.request._data = topolr.extend({},_get, post, file);
+        info.request._files=file;
+        info.request._posts=post;
+        info.request._gets=_get;
         ths.triggerProject(info.project, info.request, info.response, res);
     });
     form.parse(req);
@@ -255,16 +259,8 @@ topolrServer.prototype.triggerProject = function (prj, reqt, resp, res) {
     });
 };
 topolrServer.prototype.doResponse = function (reqt, resp, res) {
-    var serverName = "topolr " + this.version;
-    var cstr = resp._cookie.getCookieString();
-    if (cstr) {
-        resp._headers["Set-Cookie"] = cstr;
-    }
-    resp._headers["Server"] = serverName;
-    if (resp._statusCode === "index") {
-        resp._statusCode = "200";
-    }
-    res.writeHead(resp._statusCode, resp._headers);
+    resp.setHeader("server","topolr " + this.version);
+    res.writeHead(resp._statusCode, resp.getHeader());
     if (resp._pipe) {
         resp._pipe.pipe(res);
     } else {

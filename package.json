@@ -1,6 +1,6 @@
 {
   "name": "topolr-server",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "A web server of topolr.",
   "main": "lib/server.js",
   "bin": {
@@ -30,7 +30,7 @@
     "lazy": "^1.0.11",
     "mysql": "^2.10.2",
     "nedb": "^1.8.0",
-    "request": "^2.69.0",
+    "request": "^2.81.0",
     "stream": "0.0.2",
     "topolr-cetus": "^1.0.0",
     "topolr-mock": "^1.0.0",
@@ -43,6 +43,6 @@
   "homepage": "http://topolr.org",
   "devDependencies": {},
   "scripts": {
-    "start":"node bin/cli"
+    "start": "node bin/cli"
   }
 }
