@@ -88,7 +88,7 @@ var project = function (path, name, isouter) {
     this._session = {};
     this._listener=null;
     this._baseurl = TopolrServer.getServerURL() + "/" + this._name + "/";
-    this._localpath="/" + this._name;
+    this._localpath="/" + this._name+"/";
 };
 project.prototype.run = function (code) {
     var ths = this, ps = topolr.promise();
