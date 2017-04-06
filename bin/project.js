@@ -12,8 +12,8 @@ var projectConfig = function (data, path) {
     topolr.extend(this._data.spider, TopolrServer.getWebConfig().spider);
     this._basepath = path;
 };
-projectConfig.prototype.getDefaultSuffix=function () {
-    return this._data.defaultSuffix||TopolrServer.getWebConfig().defaultSuffix;
+projectConfig.prototype.getDefaultSuffix = function () {
+    return this._data.defaultSuffix || TopolrServer.getWebConfig().defaultSuffix;
 };
 projectConfig.prototype.getService = function (name) {
     if (this._data.service) {
@@ -53,14 +53,14 @@ projectConfig.prototype.getPagePath = function (name) {
     }
     return null;
 };
-projectConfig.prototype.getBasePath=function(){
+projectConfig.prototype.getBasePath = function () {
     return this._basepath;
 },
-projectConfig.prototype.hasPage = function (name) {
-    return this._data.page ? (this._data.page[name] !== undefined) : false;
-};
-projectConfig.prototype.getPageName=function (name) {
-    return this._data.page[name]||"index.nsp";
+    projectConfig.prototype.hasPage = function (name) {
+        return this._data.page ? (this._data.page[name] !== undefined) : false;
+    };
+projectConfig.prototype.getPageName = function (name) {
+    return this._data.page[name] || "index.nsp";
 }
 projectConfig.prototype.getServiceSize = function () {
     return this._data.service ? this._data.service.length : 0;
@@ -71,14 +71,14 @@ projectConfig.prototype.getFilterSize = function () {
 projectConfig.prototype.getUploadInfo = function () {
     return topolr.extend({}, {temp: this._basepath + "temp", max: 20971520, encoding: "utf-8"}, this._data.upload);
 };
-projectConfig.prototype.getListenerPacket=function () {
+projectConfig.prototype.getListenerPacket = function () {
     return this._data.listener;
 };
 
 var project = function (path, name, isouter) {
     this._isouter = isouter;
     this._name = name;
-    this._path = path.replace(/\\/g,"/");
+    this._path = path.replace(/\\/g, "/");
     this._server = null;
     this._services = {};
     this._filters = [];
@@ -86,9 +86,9 @@ var project = function (path, name, isouter) {
     this.config = null;
     this._scope = {};
     this._session = {};
-    this._listener=null;
+    this._listener = null;
     this._baseurl = TopolrServer.getServerURL() + "/" + this._name + "/";
-    this._localpath="/" + this._name+"/";
+    this._localpath = "/" + this._name + "/";
 };
 project.prototype.run = function (code) {
     var ths = this, ps = topolr.promise();
@@ -129,10 +129,10 @@ project.prototype.run = function (code) {
                 getLocalURL: function () {
                     return ths._baseurl;
                 },
-                getLocalPath:function () {
+                getLocalPath: function () {
                     return ths._localpath;
                 },
-                getListener:function () {
+                getListener: function () {
                     return ths._listener;
                 }
             }, {
@@ -164,8 +164,8 @@ project.prototype.run = function (code) {
             console.error(e);
         }
     });
-    var webconfigpath=this._path + "WEBINF" + Path.sep + "web.json";
-    if(topolr.file(webconfigpath).isExists()) {
+    var webconfigpath = this._path + "WEBINF" + Path.sep + "web.json";
+    if (topolr.file(webconfigpath).isExists()) {
         return topolr.file(webconfigpath).read().then(function (data) {
             this.config = new projectConfig(JSON.parse(data), this._path);
             var pathc = this.config.getUploadInfo().temp.replace(/\{[a-zA-Z]+\}/g, function (a) {
@@ -179,15 +179,15 @@ project.prototype.run = function (code) {
         }.bind(this)).fail(function (e) {
             util.logger.log("error", "can not find web.json with path of " + this._path);
         }.bind(this));
-    }else{
+    } else {
         return topolr.promise(function (a) {
             this.config = new projectConfig({
-                page:{
-                    index:"index."+TopolrServer.getWebConfig().defaultSuffix
+                page: {
+                    index: "index." + TopolrServer.getWebConfig().defaultSuffix
                 },
                 filter: [],
-                service:[]
-            },this._path);
+                service: []
+            }, this._path);
             a();
         }).scope(this).then(function () {
             return this.packetInit();
@@ -230,7 +230,7 @@ project.prototype.packetInit = function () {
     return ps;
 };
 project.prototype.trigger = function (request, response, res) {
-    var idkey=("t"+this._name+"id").toUpperCase();
+    var idkey = ("t" + this._name + "id").toUpperCase();
     var sid = request.getHeaders().getCookie().get(idkey);
     if (!sid) {
         sid = topolr.util.uuid();
@@ -239,10 +239,10 @@ project.prototype.trigger = function (request, response, res) {
         var k = session(sid);
         request._session = k;
         this._session[sid] = k;
-        response.addCookie(idkey,sid);
+        response.addCookie(idkey, sid);
         try {
             this._listener.sessionCreated && this._listener.sessionCreated(k);
-        }catch(e){
+        } catch (e) {
             console.error(e);
         }
     } else {
@@ -251,7 +251,7 @@ project.prototype.trigger = function (request, response, res) {
     }
     var ps = topolr.promise(), ths = this;
     request._context = this;
-    response._context=this;
+    response._context = this;
     var domainer = domain.create();
     domainer.run(function () {
         ths.doFilters(request, response, function () {
@@ -273,34 +273,34 @@ project.prototype.getModule = function (packetName, option) {
         throw Error("[packet] can not find the module of " + packetName);
     }
 };
-project.prototype.doFilters=function (request,response,fn) {
-    var ths=this;
-    this.doFrontFilters(request,response).then(function (a) {
-        if (!a||!a.typeOf || !a.typeOf("view")) {
+project.prototype.doFilters = function (request, response, fn) {
+    var ths = this;
+    this.doFrontFilters(request, response).then(function (a) {
+        if (!a || !a.typeOf || !a.typeOf("view")) {
             a = ths.getModule("errorview", {request: request, response: response});
         }
         return a;
     }).then(function (a) {
         return a.render();
     }).then(function () {
-        return ths.doEndFilters(request,response);
+        return ths.doEndFilters(request, response);
     }).then(function () {
-        fn&&fn();
-    },function (a) {
+        fn && fn();
+    }, function (a) {
         console.log(a)
     });
 };
-project.prototype.doFrontFilters=function (request,response) {
-    var ps=topolr.promise(),ths=this,a=[];
+project.prototype.doFrontFilters = function (request, response) {
+    var ps = topolr.promise(), ths = this, a = [];
     this.config._data.filter.forEach(function (filter) {
         var packet = filter.name, option = filter.option;
         var mod = ths.getModule(packet, option);
-        if (mod.typeOf("filter")&&mod.position==="front") {
+        if (mod.typeOf("filter") && mod.position === "front") {
             a.push(mod);
         }
     });
-    if(a.length>0) {
-        var queue=topolr.queue();
+    if (a.length > 0) {
+        var queue = topolr.queue();
         queue.complete(function (a) {
             ps.resolve(a);
         });
@@ -324,22 +324,26 @@ project.prototype.doFrontFilters=function (request,response) {
             }, mod);
         });
         queue.run(null);
-    }else{
-        ps.resolve(this.getModule("fileview", {request: request, response: response, path: request.getProjectURL().split("?")[0]}));
+    } else {
+        ps.resolve(this.getModule("fileview", {
+            request: request,
+            response: response,
+            path: this._path + request.getProjectURL().split("?")[0]
+        }));
     }
     return ps;
 };
-project.prototype.doEndFilters=function (request,response) {
-    var ps=topolr.promise(),a=[],ths=this;
+project.prototype.doEndFilters = function (request, response) {
+    var ps = topolr.promise(), a = [], ths = this;
     this.config._data.filter.forEach(function (filter) {
         var packet = filter.name, option = filter.option;
         var mod = ths.getModule(packet, option);
-        if (mod.typeOf("filter")&&mod.position==="end") {
+        if (mod.typeOf("filter") && mod.position === "end") {
             a.push(mod);
         }
     });
-    if(a.length>0) {
-        var queue=topolr.queue();
+    if (a.length > 0) {
+        var queue = topolr.queue();
         queue.complete(function (a) {
             ps.resolve(a);
         });
@@ -363,21 +367,21 @@ project.prototype.doEndFilters=function (request,response) {
             }, mod);
         });
         queue.run();
-    }else{
+    } else {
         ps.resolve(null);
     }
     return ps;
 };
-project.prototype.doListener=function () {
-    var name=this.config.getListenerPacket();
-    if(!name){
-        name="listener";
+project.prototype.doListener = function () {
+    var name = this.config.getListenerPacket();
+    if (!name) {
+        name = "listener";
     }
-    var mod=this.getModule(name,{});
-    if(mod&&mod.typeOf&&mod.typeOf("listener")){
-        this._listener=mod;
-    }else{
-        this._listener=this.getModule("listener",{});
+    var mod = this.getModule(name, {});
+    if (mod && mod.typeOf && mod.typeOf("listener")) {
+        this._listener = mod;
+    } else {
+        this._listener = this.getModule("listener", {});
     }
 };
 project.prototype.doServices = function () {
@@ -432,11 +436,11 @@ project.prototype.checkSession = function (tout) {
     for (var i in this._session) {
         var s = this._session[i];
         if (a - s._build > tout) {
-            var ka=this._session[i];
+            var ka = this._session[i];
             delete this._session[i];
             try {
                 this._listener.sessionDestroyed && this._listener.sessionDestroyed(ka);
-            }catch(e){
+            } catch (e) {
                 console.error(e);
             }
         }
@@ -446,7 +450,7 @@ project.prototype.getConfig = function () {
     return this.config;
 };
 project.prototype.error = function (request, response, e) {
-    return this.getModule("errorview", {request: request, response: response, data: e?e.stack:[]}).render();
+    return this.getModule("errorview", {request: request, response: response, data: e ? e.stack : []}).render();
 };
 
 module.exports = function (path, name, isouter) {
