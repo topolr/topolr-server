@@ -172,7 +172,8 @@ topolrServer.prototype.stop = function () {
 };
 
 topolrServer.prototype.getRequestInfo = function (req, res) {
-    var a = req.url.split("?");
+    var _url=req.url.replace(/[\/]+/g,"/");
+    var a = _url.replace(/[\/]+/g,"/").split("?");
     var b = a[0].split("/");
     var r = "ROOT", t = "";
     if (b.length >= 1) {
@@ -189,7 +190,7 @@ topolrServer.prototype.getRequestInfo = function (req, res) {
     }
     var resp = response(), reqt = request(req, {
         method: req.method.toLowerCase(),
-        url: req.url + t,
+        url: _url + t,
         rawHeaders: req.rawHeaders||req.headers
     });
     return {
