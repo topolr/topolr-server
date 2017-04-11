@@ -55,13 +55,13 @@ projectConfig.prototype.getPagePath = function (name) {
 };
 projectConfig.prototype.getBasePath = function () {
     return this._basepath;
-},
-    projectConfig.prototype.hasPage = function (name) {
-        return this._data.page ? (this._data.page[name] !== undefined) : false;
-    };
+};
+projectConfig.prototype.hasPage = function (name) {
+    return this._data.page ? (this._data.page[name] !== undefined) : false;
+};
 projectConfig.prototype.getPageName = function (name) {
     return this._data.page[name] || "index.nsp";
-}
+};
 projectConfig.prototype.getServiceSize = function () {
     return this._data.service ? this._data.service.length : 0;
 };
