@@ -7,7 +7,11 @@ boot.prototype.run=function () {
     if (cluster.isMaster) {
         var service = require("./cluster/service");
         for (var i = 0; i < cpuNums; i++) {
-            cluster.fork();
+            var a=cluster.fork();
+            a.send({
+                type:"workerid",
+                workerId:a.id
+            });
         }
         cluster.on("message", function (worker,data) {
             var type=data.type,_data=data.data,id=data.id;

@@ -26,6 +26,11 @@ var topolrServer = function () {
             var a = ths._taskqueue[id];
             delete ths._taskqueue[id];
             a.resolve(data.data);
+        }else{
+            var type=data.type;
+            if(type==="workerid"){
+                ths._workerId=data.workerId;
+            }
         }
     });
 };
@@ -176,7 +181,6 @@ topolrServer.prototype.stop = function () {
     }
     return ps;
 };
-
 topolrServer.prototype.excuteShareService = function (info) {
     var cluster = require('cluster');
     if (!cluster.isMaster) {
@@ -191,7 +195,6 @@ topolrServer.prototype.excuteShareService = function (info) {
         return ps;
     }
 };
-
 topolrServer.prototype.getRequestInfo = function (req, res) {
     var _url = req.url.replace(/[\/]+/g, "/");
     var a = _url.replace(/[\/]+/g, "/").split("?");
@@ -228,7 +231,8 @@ topolrServer.prototype.doPostRequest = function (req, res) {
         project: info.project._name,
         type: "POST",
         path: info.request.getURL(),
-        ip: info.request.getClientIp()
+        ip: info.request.getClientIp(),
+        id:this._workerId
     });
     var uploadInfo = info.project.getConfig().getUploadInfo();
     var form = new formidable.IncomingForm();
@@ -269,7 +273,8 @@ topolrServer.prototype.doRequest = function (req, res) {
         project: info.project._name,
         type: "GET",
         path: info.request.getURL(),
-        ip: info.request.getClientIp()
+        ip: info.request.getClientIp(),
+        id:this._workerId
     });
     info.request._data = topolr.serialize.queryObject(req.url);
     this.triggerProject(info.project, info.request, info.response, res);
@@ -292,7 +297,6 @@ topolrServer.prototype.doResponse = function (reqt, resp, res) {
         res.end();
     }
 };
-
 topolrServer.prototype.createProject = function (name, path, remotePath) {
     path = path.replace(/\\/g, "/");
     if (path[path.length - 1] !== "/") {

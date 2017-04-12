@@ -121,7 +121,7 @@ var logger = {
     request: function (info) {
         var a = new Date();
         info.time = a.toLocaleString() + "." + a.getMilliseconds();
-        topolr.log("  -(color:cyan=>[{{type}}]) (color:cyan=>[{{ip}}]) (color:11=>[{{project}}]) (color:green=>{{path}}) (color:cyan=>[{{time}}])", info);
+        topolr.log("  -(color:cyan=>[{{type}}]) (color:cyan=>[{{ip}}]) (color:11=>[{{project}}]) (color:green=>{{path}}) (color:cyan=>[{{time}}]) (color:cyan=>[{{id}}])", info);
     },
     controller: function (info) {
         topolr.log("    :(color:145=>controller) (color:11=>[{{controller}}]) (color:cyan=>action) (color:11=>[{{action}}])", info);
