@@ -110,13 +110,11 @@ var logger = {
         topolr.log("  -(color:cyan=>[SCAN]) (color:green=>{{name}})", info);
     },
     startserver: function (info) {
-        console.log("");
         if(info.http2){
-            topolr.log(" (color:11=>SERVER STARTED WITH HTTP2[:{{port}}])", info);
+            topolr.log(" (color:11=>[{{id}}]SERVER WORKER STARTED WITH HTTP2[:{{port}}])", info);
         }else {
-            topolr.log(" (color:11=>SERVER STARTED[:{{port}}])", info);
+            topolr.log(" (color:11=>[{{id}}]SERVER WORKER STARTED[:{{port}}])", info);
         }
-        console.log("");
     },
     request: function (info) {
         var a = new Date();

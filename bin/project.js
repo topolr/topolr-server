@@ -3,17 +3,18 @@ var session = require("./base/session");
 var Path = require("path");
 var util = require("./util/util");
 var domain = require('domain');
+var manager=require("./server/manager");
 
 var projectConfig = function (data, path) {
     this._data = data;
     if (!this._data.spider) {
         this._data.spider = {};
     }
-    topolr.extend(this._data.spider, TopolrServer.getWebConfig().spider);
+    topolr.extend(this._data.spider, manager().getWebConfig().spider);
     this._basepath = path;
 };
 projectConfig.prototype.getDefaultSuffix = function () {
-    return this._data.defaultSuffix || TopolrServer.getWebConfig().defaultSuffix;
+    return this._data.defaultSuffix || manager().getWebConfig().defaultSuffix;
 };
 projectConfig.prototype.getService = function (name) {
     if (this._data.service) {
@@ -87,13 +88,13 @@ var project = function (path, name, isouter,server) {
     this._scope = {};
     this._session = {};
     this._listener = null;
-    this._baseurl = TopolrServer.getServerURL() + "/" + this._name + "/";
+    this._baseurl = manager().getURL() + "/" + this._name + "/";
     this._localpath = "/" + this._name + "/";
     this.excuteShareService({
         type:"startservice",
         data:{
             serviceName:"session",
-            path:require("path").resolve(__dirname,"./cluster/sessionservice.js")
+            path:require("path").resolve(__dirname,"./service/sessionservice.js")
         }
     });
 };
@@ -141,6 +142,9 @@ project.prototype.run = function (code) {
                 },
                 getListener: function () {
                     return ths._listener;
+                },
+                getContext:function () {
+                    return ths._server;
                 },
                 excuteShareService:function (data) {
                     return ths.excuteShareService(data);
@@ -193,7 +197,7 @@ project.prototype.run = function (code) {
         return topolr.promise(function (a) {
             this.config = new projectConfig({
                 page: {
-                    index: "index." + TopolrServer.getWebConfig().defaultSuffix
+                    index: "index." + manager().getWebConfig().defaultSuffix
                 },
                 filter: [],
                 service: []
@@ -224,7 +228,7 @@ project.prototype.packetInit = function () {
         (function (path) {
             ps.then(function () {
                 var ths = this;
-                util.logger.log("scanproject", {name: path});
+                // util.logger.log("scanproject", {name: path});
                 return topolr.file(path).read().then(function (a) {
                     n += a + "\n";
                 });
@@ -252,6 +256,7 @@ project.prototype.trigger = function (request, response, res) {
                 parameters:sid
             }
         }).then(function (r) {
+            console.log("--------->>>0")
             if(!r){
                 return ths.excuteShareService({
                     type:'task',
@@ -266,6 +271,8 @@ project.prototype.trigger = function (request, response, res) {
             }else{
                 request._session=sid;
             }
+        },function () {
+            console.log("--------->>>1")
         });
     }else{
         ps=this.excuteShareService({
@@ -285,7 +292,9 @@ project.prototype.trigger = function (request, response, res) {
         response._context = ths;
         var domainer = domain.create();
         domainer.run(function () {
+            console.log("===>")
             ths.doFilters(request, response, function () {
+                console.log("===>2")
                 pss.resolve();
             });
         });

@@ -3,6 +3,6 @@ module.exports= {
     desc: "start server without deamon process and no log",
     paras: [],
     fn: function (parameters, cellmapping, allmapping) {
-        require("./../boot").run();
+        require("./../server").run();
     }
 };
