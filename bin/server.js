@@ -9,15 +9,25 @@ var fs = require("fs");
 var Path = require("path");
 
 var topolrServer = function () {
+    var ths=this;
     this.serverConfig = require("../conf/server");
     this.webConfig = require("../conf/web");
     this.packageConfig = require("../package");
-    this.basePath=Path.resolve(__dirname,"./../").replace(/\\/g,"/")+"/";
+    this.basePath = Path.resolve(__dirname, "./../").replace(/\\/g, "/") + "/";
     this.version = this.packageConfig.version;
     this.projects = {};
     this._server = null;
     this.sessioninterval = 0;
-    this.http2=this.serverConfig.http2&&this.serverConfig.http2.enable;
+    this.http2 = this.serverConfig.http2 && this.serverConfig.http2.enable;
+    this._taskqueue = {};
+    process.on("message", function (data) {
+        var id = data.id;
+        if (id && ths._taskqueue[id]) {
+            var a = ths._taskqueue[id];
+            delete ths._taskqueue[id];
+            a.resolve(data.data);
+        }
+    });
 };
 topolrServer.prototype.setTemplateGlobalMacro = function () {
     topolr.setTemplateGlobalMacro("include", function (attrs, render) {
@@ -92,8 +102,7 @@ topolrServer.prototype.initProjects = function (code) {
                     ps.then(function () {
                         return topolr.file(path).read().then(function (data) {
                             var n = JSON.parse(data);
-                            var t = project(n.path, n.name, true);
-                            t._server = ths;
+                            var t = project(n.path, n.name, true, ths);
                             ths.projects[n.name] = t;
                             util.logger.log("startproject", {name: n.name});
                             return t.run(code);
@@ -104,8 +113,7 @@ topolrServer.prototype.initProjects = function (code) {
         } else {
             (function (b) {
                 ps.then(function () {
-                    var t = project(b.path, b.name, false);
-                    t._server = ths;
+                    var t = project(b.path, b.name, false, ths);
                     ths.projects[b.name] = t;
                     util.logger.log("startproject", {name: b.name});
                     return t.run(code);
@@ -121,10 +129,9 @@ topolrServer.prototype.initProjects = function (code) {
 topolrServer.prototype.initServer = function () {
     var ths = this;
     try {
-        this.startSessionWatcher();
         if (this.http2) {
-            var keypath=this.serverConfig.http2.key.replace(/\{server\}/g,this.basePath);
-            var certpath=this.serverConfig.http2.cert.replace(/\{server\}/g,this.basePath);
+            var keypath = this.serverConfig.http2.key.replace(/\{server\}/g, this.basePath);
+            var certpath = this.serverConfig.http2.cert.replace(/\{server\}/g, this.basePath);
             this._server = require("http2").createServer({
                 key: topolr.file(keypath).readSync(),
                 cert: topolr.file(certpath).readSync()
@@ -135,7 +142,7 @@ topolrServer.prototype.initServer = function () {
                     ths.doRequest(req, res);
                 }
             }).listen(this.serverConfig.port);
-            util.logger.log("startserver", {port: this.serverConfig.port,http2:true});
+            util.logger.log("startserver", {port: this.serverConfig.port, http2: true});
         } else {
             this._server = http.createServer(function (req, res) {
                 if (req.method.toLowerCase() === "post") {
@@ -162,7 +169,6 @@ topolrServer.prototype.startup = function () {
 };
 topolrServer.prototype.stop = function () {
     var ps = topolr.promise();
-    this.stopSessionWatcher();
     for (var i in this.projects) {
         (function (b) {
             return b.stop();
@@ -171,9 +177,24 @@ topolrServer.prototype.stop = function () {
     return ps;
 };
 
+topolrServer.prototype.excuteShareService = function (info) {
+    var cluster = require('cluster');
+    if (!cluster.isMaster) {
+        var id = Math.random().toString(36).slice(2, 34), ps = topolr.promise();
+        var ops = topolr.extend({
+            id: id,
+            type: "",
+            data: null
+        }, info);
+        this._taskqueue[id] = ps;
+        process.send(ops);
+        return ps;
+    }
+};
+
 topolrServer.prototype.getRequestInfo = function (req, res) {
-    var _url=req.url.replace(/[\/]+/g,"/");
-    var a = _url.replace(/[\/]+/g,"/").split("?");
+    var _url = req.url.replace(/[\/]+/g, "/");
+    var a = _url.replace(/[\/]+/g, "/").split("?");
     var b = a[0].split("/");
     var r = "ROOT", t = "";
     if (b.length >= 1) {
@@ -191,7 +212,7 @@ topolrServer.prototype.getRequestInfo = function (req, res) {
     var resp = response(), reqt = request(req, {
         method: req.method.toLowerCase(),
         url: _url + t,
-        rawHeaders: req.rawHeaders||req.headers
+        rawHeaders: req.rawHeaders || req.headers
     });
     return {
         project: prj,
@@ -233,11 +254,11 @@ topolrServer.prototype.doPostRequest = function (req, res) {
     }).on('file', function (field, _file) {
         file[field] = _file;
     }).on('end', function () {
-        var _get=topolr.serialize.queryObject(req.url);
-        info.request._data = topolr.extend({},_get, post, file);
-        info.request._files=file;
-        info.request._posts=post;
-        info.request._gets=_get;
+        var _get = topolr.serialize.queryObject(req.url);
+        info.request._data = topolr.extend({}, _get, post, file);
+        info.request._files = file;
+        info.request._posts = post;
+        info.request._gets = _get;
         ths.triggerProject(info.project, info.request, info.response, res);
     });
     form.parse(req);
@@ -260,7 +281,7 @@ topolrServer.prototype.triggerProject = function (prj, reqt, resp, res) {
     });
 };
 topolrServer.prototype.doResponse = function (reqt, resp, res) {
-    resp.setHeader("server","topolr " + this.version);
+    resp.setHeader("server", "topolr " + this.version);
     res.writeHead(resp._statusCode, resp.getHeader());
     if (resp._pipe) {
         resp._pipe.pipe(res);
@@ -271,22 +292,9 @@ topolrServer.prototype.doResponse = function (reqt, resp, res) {
         res.end();
     }
 };
-topolrServer.prototype.startSessionWatcher = function () {
-    var tout = this.webConfig.session.timeout;
-    this.sessioninterval = setInterval(function () {
-        for (var i in this.projects) {
-            this.projects[i].checkSession(tout);
-        }
-    }.bind(this), tout * 1000);
-    return this;
-};
-topolrServer.prototype.stopSessionWatcher = function () {
-    clearInterval(this.sessioninterval);
-    return this;
-}
 
 topolrServer.prototype.createProject = function (name, path, remotePath) {
-    path=path.replace(/\\/g,"/");
+    path = path.replace(/\\/g, "/");
     if (path[path.length - 1] !== "/") {
         path = path + "/";
     }
@@ -392,7 +400,7 @@ topolrServer.prototype.removeProject = function (projectName) {
             if (topolr.file(path).isExists()) {
                 topolr.file(path).remove();
                 ps.resolve();
-            }else{
+            } else {
                 ps.resolve();
             }
         }
@@ -465,30 +473,30 @@ topolrServer.prototype.getServerInfo = function () {
         platform: process.platform
     };
 };
-topolrServer.prototype.getPort=function () {
+topolrServer.prototype.getPort = function () {
     return this.serverConfig.port;
 };
-topolrServer.prototype.getProtocol=function () {
-    return this.http2?"https":"http";
+topolrServer.prototype.getProtocol = function () {
+    return this.http2 ? "https" : "http";
 };
-topolrServer.prototype.getHost=function () {
+topolrServer.prototype.getHost = function () {
     var port = this.serverConfig.port;
-    return (this.serverConfig.host||"localhost") + (port !== "" && port != 80 ? ":" + port : "");
+    return (this.serverConfig.host || "localhost") + (port !== "" && port != 80 ? ":" + port : "");
 };
-topolrServer.prototype.getURL=function () {
+topolrServer.prototype.getURL = function () {
     var port = this.serverConfig.port;
-    return this.getProtocol()+"://"+this.getHost();
+    return this.getProtocol() + "://" + this.getHost();
 };
 
 var topolrserver = new topolrServer();
 global.TopolrServer = {
-    getServerPort:function () {
+    getServerPort: function () {
         return topolrserver.getPort();
     },
     getServerHost: function () {
         return topolrserver.getHost();
     },
-    getServerProtocol:function () {
+    getServerProtocol: function () {
         return topolrserver.getProtocol();
     },
     getServerURL: function () {
@@ -508,7 +516,7 @@ global.TopolrServer = {
         }
         return r;
     },
-    getMimeType:function (suffix) {
+    getMimeType: function (suffix) {
         return this.webConfig.mime[suffix];
     },
     getProjects: function () {
@@ -530,10 +538,10 @@ global.TopolrServer = {
             webConfigPath: topolrserver.webConfigPath
         };
     },
-    getDefaultPagePath:function (code) {
-        return topolrserver.webConfig.page[code]?(topolrserver.basePath+topolrserver.webConfig.page[code]):null;
+    getDefaultPagePath: function (code) {
+        return topolrserver.webConfig.page[code] ? (topolrserver.basePath + topolrserver.webConfig.page[code]) : null;
     },
-    getDefaultSuffix:function () {
+    getDefaultSuffix: function () {
         return topolrserver.webConfig.defaultSuffix;
     }
 };

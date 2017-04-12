@@ -75,11 +75,11 @@ projectConfig.prototype.getListenerPacket = function () {
     return this._data.listener;
 };
 
-var project = function (path, name, isouter) {
+var project = function (path, name, isouter,server) {
     this._isouter = isouter;
     this._name = name;
     this._path = path.replace(/\\/g, "/");
-    this._server = null;
+    this._server = server;
     this._services = {};
     this._filters = [];
     this._packet = topolr.packet(this._path + "node_modules", this._path + "WEBINF/src/");
@@ -89,6 +89,13 @@ var project = function (path, name, isouter) {
     this._listener = null;
     this._baseurl = TopolrServer.getServerURL() + "/" + this._name + "/";
     this._localpath = "/" + this._name + "/";
+    this.excuteShareService({
+        type:"startservice",
+        data:{
+            serviceName:"session",
+            path:require("path").resolve(__dirname,"./cluster/sessionservice.js")
+        }
+    });
 };
 project.prototype.run = function (code) {
     var ths = this, ps = topolr.promise();
@@ -134,6 +141,9 @@ project.prototype.run = function (code) {
                 },
                 getListener: function () {
                     return ths._listener;
+                },
+                excuteShareService:function (data) {
+                    return ths.excuteShareService(data);
                 }
             }, {
                 get: function (name, option) {
@@ -232,36 +242,59 @@ project.prototype.packetInit = function () {
 project.prototype.trigger = function (request, response, res) {
     var idkey = ("t" + this._name + "id").toUpperCase();
     var sid = request.getHeaders().getCookie().get(idkey);
-    if (!sid) {
-        sid = topolr.util.uuid();
-    }
-    if (!this._session[sid]) {
-        var k = session(sid);
-        request._session = k;
-        this._session[sid] = k;
-        response.addCookie(idkey, sid);
-        try {
-            this._listener.sessionCreated && this._listener.sessionCreated(k);
-        } catch (e) {
-            console.error(e);
-        }
-    } else {
-        this._session[sid]._build = new Date().getTime();
-        request._session = this._session[sid];
-    }
-    var ps = topolr.promise(), ths = this;
-    request._context = this;
-    response._context = this;
-    var domainer = domain.create();
-    domainer.run(function () {
-        ths.doFilters(request, response, function () {
-            ps.resolve();
+    var ps=null,ths=this;
+    if(sid){
+        ps=this.excuteShareService({
+            type:"task",
+            data:{
+                serviceName:"session",
+                method:"check",
+                parameters:sid
+            }
+        }).then(function (r) {
+            if(!r){
+                return ths.excuteShareService({
+                    type:'task',
+                    data:{
+                        serviceName:'session',
+                        method:"create"
+                    }
+                }).then(function (sid) {
+                    response.addCookie(idkey, sid);
+                    request._session=sid;
+                });
+            }else{
+                request._session=sid;
+            }
         });
-    });
-    domainer.on('error', function (e) {
-        util.logger.log("error", e);
-        var view = ths.getModule("errorview", {request: request, response: response, data: e.stack});
-        ths._server.doResponse(view, request, response, res);
+    }else{
+        ps=this.excuteShareService({
+            type:"task",
+            data:{
+                serviceName:"session",
+                method:"create"
+            }
+        }).then(function (sid) {
+            response.addCookie(idkey, sid);
+            request._session=sid;
+        });
+    }
+    ps.then(function () {
+        var pss = topolr.promise();
+        request._context = ths;
+        response._context = ths;
+        var domainer = domain.create();
+        domainer.run(function () {
+            ths.doFilters(request, response, function () {
+                pss.resolve();
+            });
+        });
+        domainer.on('error', function (e) {
+            util.logger.log("error", e);
+            var view = ths.getModule("errorview", {request: request, response: response, data: e.stack});
+            ths._server.doResponse(view, request, response, res);
+        });
+        return pss;
     });
     return ps;
 };
@@ -431,28 +464,16 @@ project.prototype.stopService = function () {
     }
     return ps;
 };
-project.prototype.checkSession = function (tout) {
-    var a = new Date().getTime();
-    for (var i in this._session) {
-        var s = this._session[i];
-        if (a - s._build > tout) {
-            var ka = this._session[i];
-            delete this._session[i];
-            try {
-                this._listener.sessionDestroyed && this._listener.sessionDestroyed(ka);
-            } catch (e) {
-                console.error(e);
-            }
-        }
-    }
-};
 project.prototype.getConfig = function () {
     return this.config;
 };
 project.prototype.error = function (request, response, e) {
     return this.getModule("errorview", {request: request, response: response, data: e ? e.stack : []}).render();
 };
+project.prototype.excuteShareService=function (data) {
+    return this._server.excuteShareService(data);
+};
 
-module.exports = function (path, name, isouter) {
-    return new project(path, name, isouter);
+module.exports = function (path, name, isouter,server) {
+    return new project(path, name, isouter,server);
 };

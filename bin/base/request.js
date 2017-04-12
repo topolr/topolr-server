@@ -69,6 +69,43 @@ header.prototype.getHeadersInfo=function () {
     return this._headers;
 };
 
+var session=function (id,context) {
+    this._id=id;
+    this._context=context;
+};
+session.excute=function () {
+    var a=Array.prototype.slice.call(arguments);
+    return this._context.excuteShareService({
+        type:"task",
+        data:{
+            serviceName:"session",
+            method:"excute",
+            parameters:a
+        }
+    });
+};
+session.prototype.hasAttribute = function (key) {
+    return session.excute.call(this,"hasAttribute",this._id,key);
+};
+session.prototype.getAttribute = function (key) {
+    return session.excute.call(this,"getAttribute",this._id,key);
+};
+session.prototype.setAttribute = function (key, value) {
+    return session.excute.call(this,"setAttribute",this._id,key,value);
+};
+session.prototype.removeAttribute = function (key) {
+    return session.excute.call(this,"removeAttribute",this._id,key);
+};
+session.prototype.clear = function () {
+    return session.excute.call(this,"clear",this._id,key);
+};
+session.prototype.getId=function () {
+    return session.excute.call(this,"getId",this._id,key);
+};
+session.prototype.getAllAttributes=function () {
+    return session.excute.call(this,"getAllAttributes",this._id,key);
+};
+
 var request = function (req, data) {
     this._headers = new header(data.rawHeaders);
     this._context = null;
@@ -167,7 +204,7 @@ request.prototype.getContext = function () {
     return this._context;
 };
 request.prototype.getSession = function () {
-    return this._session;
+    return new session(this._session,this._context);
 };
 request.prototype.isAjax = function () {
     return this.getHeaders().getAttr("x-requested-with") === "XMLHttpRequest";
