@@ -57,8 +57,8 @@ var server=function () {
         require("./server/process.js")();
     }
 };
-server.prototype.run=function () {
-};
+
+
 var actions = {
     getProcessInfo: function () {
         return {
@@ -95,4 +95,5 @@ process.on("message", function (data) {
 process.on("uncaughtException", function (e) {
     console.log(e.stack);
 });
-module.exports=new server();
+new server();
+module.exports={};
