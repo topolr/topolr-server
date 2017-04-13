@@ -21,7 +21,7 @@ var startServer = function () {
         }else{
             st.push("ignore");
         }
-        worker = require('child_process').spawn('node', [require("path").resolve(__dirname,'./main.js')], {
+        worker = require('child_process').spawn('node', [require("path").resolve(__dirname,'./server.js')], {
             detached: true,
             stdio: st
         });
