@@ -9,7 +9,7 @@ var Path = require("path");
 var manager=require("./manager");
 var topolrserver = null;
 
-var process = function (id) {
+var serverprocess = function (id) {
     this.serverConfig = require("./../../conf/server");
     this.basePath = Path.resolve(__dirname, "./../../").replace(/\\/g, "/") + "/";
     this.version = require("./../../package").version;
@@ -19,7 +19,7 @@ var process = function (id) {
     this._taskqueue = {};
     this._workerId=id;
 };
-process.prototype.setTemplateGlobalMacro = function () {
+serverprocess.prototype.setTemplateGlobalMacro = function () {
     topolr.setTemplateGlobalMacro("include", function (attrs, render) {
         var c = manager.getNspContent(this.basePath + attrs.path), t = "";
         if (!c) {
@@ -56,7 +56,7 @@ process.prototype.setTemplateGlobalMacro = function () {
         return a;
     });
 };
-process.prototype.getModulesCode = function () {
+serverprocess.prototype.getModulesCode = function () {
     var paths = this.serverConfig.modules, ths = this;
     if (!topolr.is.isArray(paths)) {
         paths = ["lib/base.js"];
@@ -79,7 +79,7 @@ process.prototype.getModulesCode = function () {
     });
     return ps;
 };
-process.prototype.initProjects = function (code) {
+serverprocess.prototype.initProjects = function (code) {
     var ths = this;
     var ps = topolr.promise(function (a) {
         a();
@@ -116,7 +116,7 @@ process.prototype.initProjects = function (code) {
     });
     return ps;
 };
-process.prototype.initServer = function () {
+serverprocess.prototype.initServer = function () {
     var ths = this;
     try {
         if (this.http2) {
@@ -147,7 +147,7 @@ process.prototype.initServer = function () {
         util.logger.log("error", e);
     }
 };
-process.prototype.startup = function () {
+serverprocess.prototype.startup = function () {
     this.setTemplateGlobalMacro();
     this.getModulesCode().scope(this).then(function (code) {
         return this.initProjects(code);
@@ -158,7 +158,7 @@ process.prototype.startup = function () {
     });
     return this;
 };
-process.prototype.stop = function () {
+serverprocess.prototype.stop = function () {
     var ps = topolr.promise();
     for (var i in this.projects) {
         (function (b) {
@@ -167,7 +167,7 @@ process.prototype.stop = function () {
     }
     return ps;
 };
-process.prototype.getRequestInfo = function (req, res) {
+serverprocess.prototype.getRequestInfo = function (req, res) {
     var _url = req.url.replace(/[\/]+/g, "/");
     var a = _url.replace(/[\/]+/g, "/").split("?");
     var b = a[0].split("/");
@@ -195,7 +195,7 @@ process.prototype.getRequestInfo = function (req, res) {
         response: resp
     };
 };
-process.prototype.doPostRequest = function (req, res) {
+serverprocess.prototype.doPostRequest = function (req, res) {
     var ths = this;
     var post = {}, file = {};
     var info = this.getRequestInfo(req, res);
@@ -239,7 +239,7 @@ process.prototype.doPostRequest = function (req, res) {
     });
     form.parse(req);
 };
-process.prototype.doRequest = function (req, res) {
+serverprocess.prototype.doRequest = function (req, res) {
     var info = this.getRequestInfo(req, res);
     util.logger.log("request", {
         project: info.project._name,
@@ -251,7 +251,7 @@ process.prototype.doRequest = function (req, res) {
     info.request._data = topolr.serialize.queryObject(req.url);
     this.triggerProject(info.project, info.request, info.response, res);
 };
-process.prototype.triggerProject = function (prj, reqt, resp, res) {
+serverprocess.prototype.triggerProject = function (prj, reqt, resp, res) {
     var ths = this;
     prj.trigger(reqt, resp, res).then(function () {
         ths.doResponse(reqt, resp, res);
@@ -259,7 +259,7 @@ process.prototype.triggerProject = function (prj, reqt, resp, res) {
         console.log(a)
     });
 };
-process.prototype.doResponse = function (reqt, resp, res) {
+serverprocess.prototype.doResponse = function (reqt, resp, res) {
     resp.setHeader("server", "topolr " + this.version);
     res.writeHead(resp._statusCode, resp.getHeader());
     if (resp._pipe) {
@@ -271,7 +271,7 @@ process.prototype.doResponse = function (reqt, resp, res) {
         res.end();
     }
 };
-process.prototype.excuteShareService = function (info) {
+serverprocess.prototype.excuteShareService = function (info) {
     var cluster = require('cluster');
     if (!cluster.isMaster) {
         var id = Math.random().toString(36).slice(2, 34), ps = topolr.promise();
@@ -285,7 +285,7 @@ process.prototype.excuteShareService = function (info) {
         return ps;
     }
 };
-process.prototype._doMessage=function (data) {
+serverprocess.prototype._doMessage=function (data) {
     var id = data.id;
     if (id && this._taskqueue[id]) {
         var a = this._taskqueue[id];
@@ -304,7 +304,7 @@ process.on('uncaughtException', function (err) {
 });
 process.on("message", function (data) {
     if(data&&data.type==="startserver"){
-        topolrserver=new topolrServer(data.data).startup();
+        topolrserver=new serverprocess(data.data).startup();
     }else if(topolrserver) {
         topolrserver._doMessage(data);
     }
