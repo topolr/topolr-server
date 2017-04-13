@@ -184,12 +184,6 @@ var manager = {
             platform: process.platform
         };
     },
-    getPort: function () {
-        return this.serverConfig.port;
-    },
-    getProtocol: function () {
-        return this.http2 ? "https" : "http";
-    },
     getHost: function () {
         var port = this.serverConfig.port;
         return (this.serverConfig.host || "localhost") + (port !== "" && port != 80 ? ":" + port : "");
