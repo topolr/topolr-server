@@ -24,5 +24,8 @@
             "error"
         ],
         "maxsize": 2097152
-    }
+    },
+    "services":[
+        {"name":"session","path":"{server}/lib/service/sessionservice.js"}
+    ]
 }

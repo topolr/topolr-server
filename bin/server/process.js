@@ -132,7 +132,7 @@ serverprocess.prototype.initServer = function () {
                     ths.doRequest(req, res);
                 }
             }).listen(this.serverConfig.port);
-            util.logger.log("startserver", {port: this.serverConfig.port, http2: true,id:this._workerId});
+            util.logger.log("startserver", {port: this.serverConfig.port, http2: true,id:this._workerId,pid:process.pid});
         } else {
             this._server = http.createServer(function (req, res) {
                 if (req.method.toLowerCase() === "post") {
@@ -141,7 +141,7 @@ serverprocess.prototype.initServer = function () {
                     ths.doRequest(req, res);
                 }
             }).listen(this.serverConfig.port);
-            util.logger.log("startserver", {port: this.serverConfig.port,id:this._workerId});
+            util.logger.log("startserver", {port: this.serverConfig.port,id:this._workerId,pid:process.pid});
         }
     } catch (e) {
         util.logger.log("error", e);

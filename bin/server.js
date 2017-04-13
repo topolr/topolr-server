@@ -1,8 +1,20 @@
 var topolr=require("topolr-util");
 var cluster = require('cluster');
 var cpuNums = require('os').cpus().length;
+var util=require("./util/util");
+var manager=require("./server/manager");
 var server=function () {
     if (cluster.isMaster) {
+        util.logger.log("serverstart",{
+            host:manager.getHost(),
+            port:manager.getPort(),
+            protocol:manager.getProtocol(),
+            url:manager.getURL(),
+            projects:manager.listProjectsSync(),
+            workerSize:cpuNums,
+            http2:manager.isHttp2(),
+            info:manager.getServerInfo()
+        });
         var service = require("./server/service.js");
         for (var i = 0; i < cpuNums; i++) {
             var a=cluster.fork();

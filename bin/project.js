@@ -90,13 +90,6 @@ var project = function (path, name, isouter,server) {
     this._listener = null;
     this._baseurl = manager.getURL() + "/" + this._name + "/";
     this._localpath = "/" + this._name + "/";
-    this.excuteShareService({
-        type:"startservice",
-        data:{
-            serviceName:"session",
-            path:require("path").resolve(__dirname,"./service/sessionservice.js")
-        }
-    });
 };
 project.prototype.run = function (code) {
     var ths = this, ps = topolr.promise();

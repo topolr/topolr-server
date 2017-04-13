@@ -110,11 +110,24 @@ var logger = {
         topolr.log("  -(color:cyan=>[SCAN]) (color:green=>{{name}})", info);
     },
     startserver: function (info) {
-        if(info.http2){
-            topolr.log(" (color:11=>[{{id}}]SERVER WORKER STARTED WITH HTTP2[:{{port}}])", info);
-        }else {
-            topolr.log(" (color:11=>[{{id}}]SERVER WORKER STARTED[:{{port}}])", info);
+        topolr.log("(color:145=>[{{id}}])(color:11=>SERVER WORKER STARTED)(color:green=>[{{pid}}])", info);
+    },
+    serverstart:function (info) {
+        var a={};
+        for(var i in info.info){
+            a[i]=info.info[i].toUpperCase();
         }
+        topolr.log("(color:11=>TOPOLR SERVER {{version}},NODE {{nodeVersion}} {{platform}} {{installPath}})",a);
+        topolr.log("(color:cyan=>PROTOCOL)(color:green=>[{{protocol}}])"+
+            " (color:cyan=>HOST)(color:green=>[{{host}}])"+
+            " (color:cyan=>PORT)(color:green=>[{{port}}])"+
+            " (color:cyan=>WORKER)(color:green=>[{{workerSize}}])",info);
+        var projects=[];
+        for(var i in info.projects){
+            projects.push(info.projects[i].name);
+        }
+        topolr.log("(color:cyan=>PROJECT)(color:145=>[ {{projects}} ])",{projects:projects.join(" | ")});
+        topolr.log("color:cyan=>----------------------------------------------------");
     },
     request: function (info) {
         var a = new Date();

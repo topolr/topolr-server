@@ -1,3 +1,4 @@
+var manager=require("./manager");
 var actions={
     service:{},
     task:function (data) {
@@ -17,6 +18,14 @@ var actions={
         }
     }
 };
+var sservice=manager.getShareServices();
+for(var i=0;i<sservice.length;i++){
+    var a=sservice[i];
+    actions.startservice({
+        path:a.path,
+        serviceName:a.name
+    });
+}
 module.exports={
     excute:function (data) {
         var type=data.type,_data=data.data;

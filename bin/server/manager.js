@@ -75,6 +75,65 @@ var manager = {
         });
         return ls;
     },
+    getProjectList:function () {
+        var path = this.basePath + "webapps", ths = this, queue = topolr.queue(), ps = topolr.promise(), ls = [];
+        queue.complete(function () {
+            ps.resolve(ls);
+        });
+        topolr.file(path).subscan(function (pa, isfile) {
+            if (!isfile) {
+                var n = pa.substring(path.length + 1, pa.length - 1);
+                ls.push({
+                    name: n,
+                    path: pa.substring(0, pa.length - 1),
+                    isout: false
+                });
+            } else {
+                if (pa.indexOf(".json") !== -1) {
+                    queue.add(function (a, b) {
+                        var tss = this;
+                        topolr.file(b).read().then(function (data) {
+                            var n = JSON.parse(data);
+                            ls.push({
+                                name: n.name,
+                                path: n.path.substring(0, n.path.length - 1),
+                                isout: true
+                            });
+                            tss.next(n.name);
+                        });
+                    }, function () {
+                        this.next();
+                    }, pa);
+                }
+            }
+        });
+        queue.run();
+        return ps;
+    },
+    getProjectListSync:function () {
+        var path = this.basePath + "webapps", ths = this, ls = [];
+        topolr.file(path).subscan(function (pa, isfile) {
+            if (!isfile) {
+                var n = pa.substring(path.length + 1, pa.length - 1);
+                ls.push({
+                    name: n,
+                    path: pa.substring(0, pa.length - 1),
+                    isout: false
+                });
+            } else {
+                if (pa.indexOf(".json") !== -1) {
+                    var data = topolr.file(pa).readSync();
+                    var n = JSON.parse(data);
+                    ls.push({
+                        name: n.name,
+                        path: n.path.substring(0, n.path.length - 1),
+                        isout: true
+                    });
+                }
+            }
+        });
+        return ls;
+    },
     getAllRemoteProjects: function () {
         var path = this.basePath + "webapps", queue = topolr.queue(), ps = topolr.promise(), ls = [];
         queue.complete(function () {
@@ -179,18 +238,21 @@ var manager = {
     getServerInfo: function () {
         return {
             version: this.packageConfig.version,
-            "node version": process.version,
-            "install path": process.installPrefix || "unknow",
+            nodeVersion: process.version,
+            installPath: process.installPrefix || "unknow",
             platform: process.platform
         };
     },
     getHost: function () {
+        return (this.serverConfig.host || "localhost");
+    },
+    getHostPort:function () {
         var port = this.serverConfig.port;
         return (this.serverConfig.host || "localhost") + (port !== "" && port != 80 ? ":" + port : "");
     },
     getURL: function () {
         var port = this.serverConfig.port;
-        return this.getProtocol() + "://" + this.getHost();
+        return this.getProtocol() + "://" + this.getHostPort();
     },
     getMimeType: function (suffix) {
         return this.webConfig.mime[suffix];
@@ -210,6 +272,9 @@ var manager = {
     getProtocol: function () {
         return this.http2 ? "https" : "http";
     },
+    isHttp2:function () {
+        return this.http2;
+    },
     getDefaultPagePath: function (code) {
         return this.webConfig.page[code] ? (this.basePath + this.webConfig.page[code]) : null;
     },
@@ -218,6 +283,14 @@ var manager = {
     },
     getWebConfig: function () {
         return this.webConfig;
+    },
+    getShareServices:function () {
+        var a=this.serverConfig.services;
+        for(var i=0;i<a.length;i++){
+            var b=a[i];
+            b.path=b.path.replace(/\{server\}/g,this.basePath);
+        }
+        return this.serverConfig.services;
     }
 };
 module.exports = manager;
