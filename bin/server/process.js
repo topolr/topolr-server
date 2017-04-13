@@ -271,7 +271,7 @@ serverprocess.prototype.doResponse = function (reqt, resp, res) {
         res.end();
     }
 };
-serverprocess.prototype.excuteShareService = function (info) {
+serverprocess.prototype.postShareService=function (info) {
     var cluster = require('cluster');
     if (!cluster.isMaster) {
         var id = Math.random().toString(36).slice(2, 34), ps = topolr.promise();
@@ -284,6 +284,34 @@ serverprocess.prototype.excuteShareService = function (info) {
         process.send(ops);
         return ps;
     }
+};
+serverprocess.prototype.excuteShareService = function (serviceName,method,parameters) {
+    return this.postShareService({
+        type:"task",
+        data:{
+            serviceName:serviceName,
+            method:method,
+            parameters:parameters
+        }
+    });
+};
+serverprocess.prototype.startShareService=function (name,path,option) {
+    return this.postShareService({
+        type:"startservice",
+        data:{
+            serviceName:name,
+            path:method,
+            option:option
+        }
+    });
+};
+serverprocess.prototype.stopShareService=function (name) {
+    return this.postShareService({
+        type:"stopservice",
+        data:{
+            serviceName:name
+        }
+    });
 };
 serverprocess.prototype._doMessage=function (data) {
     var id = data.id;

@@ -6,6 +6,7 @@
         "key":"{server}/conf/http2/test.org.key",
         "cert":"{server}/conf/http2/test.org.crt"
     },
+    "workerSize":"cup",
     "modules": [
         "lib/base.js",
         "lib/comet.js",
@@ -27,5 +28,8 @@
     },
     "services":[
         {"name":"session","path":"{server}/lib/service/sessionservice.js"}
-    ]
+    ],
+    "defaultServices":{
+        "cetus":"{server}/lib/service/cetusservice.js"
+    }
 }

@@ -1,9 +1,9 @@
 var topolr=require("topolr-util");
 var cluster = require('cluster');
-var cpuNums = require('os').cpus().length;
 var util=require("./util/util");
 var manager=require("./server/manager");
 var server=function () {
+    var workerSize=manager.getWorkerSize();
     if (cluster.isMaster) {
         util.logger.log("serverstart",{
             host:manager.getHost(),
@@ -11,12 +11,12 @@ var server=function () {
             protocol:manager.getProtocol(),
             url:manager.getURL(),
             projects:manager.listProjectsSync(),
-            workerSize:cpuNums,
+            workerSize:workerSize,
             http2:manager.isHttp2(),
             info:manager.getServerInfo()
         });
         var service = require("./server/service.js");
-        for (var i = 0; i < cpuNums; i++) {
+        for (var i = 0; i < workerSize; i++) {
             var a=cluster.fork();
             a.send({
                 type:"startserver",

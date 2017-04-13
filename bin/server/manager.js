@@ -4,6 +4,27 @@ var manager = {
     webConfig: require("./../../conf/web"),
     packageConfig: require("./../../package"),
     basePath: (require("path").resolve(__dirname, "./../../").replace(/\\/g, "/") + "/"),
+    getServerPath:function () {
+        return this.basePath;
+    },
+    getWorkerSize:function () {
+        var a=this.serverConfig.workerSize;
+        var b=require('os').cpus().length;
+        if(a==="cup"){
+            return b;
+        }else{
+            if(topolr.is.isNumeric(a)) {
+                a = a / 1;
+                if (a <= 0 || a > b) {
+                    return b;
+                } else {
+                    return a;
+                }
+            }else{
+                return b;
+            }
+        }
+    },
     createProject: function (name, path, remotePath) {
         path = path.replace(/\\/g, "/");
         if (path[path.length - 1] !== "/") {
@@ -291,6 +312,14 @@ var manager = {
             b.path=b.path.replace(/\{server\}/g,this.basePath);
         }
         return this.serverConfig.services;
+    },
+    getDefaultShareService:function () {
+        var a=this.serverConfig.defaultServices,r={};
+        for(var i in a){
+            var path=a[i];
+            r[i]=path.replace(/\{server\}/g,this.basePath);
+        }
+        return r;
     }
 };
 module.exports = manager;

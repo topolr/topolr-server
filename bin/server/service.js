@@ -14,7 +14,7 @@ var actions={
             var a=require(path);
             var service=new a();
             actions.service[serviceName]=service;
-            service.start();
+            service.start(data.option||{});
         }
     }
 };
