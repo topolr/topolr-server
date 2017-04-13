@@ -151,11 +151,10 @@ var actions={
         });
     },
     startDaemon: function () {
-        var p = topolr.path(__dirname).parent().path();
         try {
-            var server = require('child_process').spawn('node', [p + './../../bin/daemon.js'], {
+            var server = require('child_process').spawn('node', [require("path").resolve(__dirname,'./../../../bin/daemon.js')], {
                 detached: true,
-                stdio: ['ignore', fs.openSync(p+"./../../log/deamon.log", 'a'), fs.openSync(p+"./../../log/deamon.log", 'a')]
+                stdio: ['ignore', fs.openSync(require("path").resolve(__dirname,"./../../../log/deamon.log"), 'a'), fs.openSync(require("path").resolve(__dirname,"./../../../log/deamon.log"), 'a')]
             });
             server.on("error", function (e) {
                 console.log(e);

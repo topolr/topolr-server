@@ -47,6 +47,11 @@ var server=function () {
         });
         cluster.on('exit', function (worker) {
             console.log('worker' + worker.id + ' exit.');
+            var a=cluster.fork();
+            a.send({
+                type:"startserver",
+                data:a.id
+            });
         });
     } else {
         require("./server/process.js")();

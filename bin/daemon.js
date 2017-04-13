@@ -9,7 +9,6 @@ var isrestart = true;
 var _data = null;
 
 var startServer = function () {
-    var p = topolr.path(__dirname).parent().path();
     try {
         var logger=Log(logconfig),st=["ipc"];
         if(logconfig.level.indexOf("info")!==-1){
@@ -22,7 +21,7 @@ var startServer = function () {
         }else{
             st.push("ignore");
         }
-        worker = require('child_process').spawn('node', [p + './bin/main.js'], {
+        worker = require('child_process').spawn('node', [require("path").resolve(__dirname,'./main.js')], {
             detached: true,
             stdio: st
         });

@@ -31,5 +31,8 @@ process.on("message", function (data) {
         process.send("");
     }
 });
+process.on("uncaughtException", function (e) {
+    console.log(e.stack);
+});
 var server = require("./server");
 server.run();
