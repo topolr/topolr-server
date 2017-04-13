@@ -1,4 +1,6 @@
 var topolr=require("topolr-util");
+var manager=require("./../server/manager");
+
 var cookie = function (str) {
     this._str = str;
     this._info = {};
@@ -220,10 +222,10 @@ request.prototype.getHttpPath = function () {
     if (t === "ROOT") {
         t = "";
     }
-    return TopolrServer.getServerProtocol()+"://" + this.getHeaders().getHost() + "/" + (t ? t + "/" : "");
+    return manager.getProtocol()+"://" + this.getHeaders().getHost() + "/" + (t ? t + "/" : "");
 };
 request.prototype.getRequestURL=function () {
-    return TopolrServer.getServerProtocol()+"://"+this.getHeaders().getHost()+this.getURL();
+    return manager.getProtocol()+"://"+this.getHeaders().getHost()+this.getURL();
 };
 request.prototype.isSpiderByUA = function () {
     var t = this.getContext();

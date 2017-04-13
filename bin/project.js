@@ -10,11 +10,11 @@ var projectConfig = function (data, path) {
     if (!this._data.spider) {
         this._data.spider = {};
     }
-    topolr.extend(this._data.spider, manager().getWebConfig().spider);
+    topolr.extend(this._data.spider, manager.getWebConfig().spider);
     this._basepath = path;
 };
 projectConfig.prototype.getDefaultSuffix = function () {
-    return this._data.defaultSuffix || manager().getWebConfig().defaultSuffix;
+    return this._data.defaultSuffix || manager.getWebConfig().defaultSuffix;
 };
 projectConfig.prototype.getService = function (name) {
     if (this._data.service) {
@@ -88,7 +88,7 @@ var project = function (path, name, isouter,server) {
     this._scope = {};
     this._session = {};
     this._listener = null;
-    this._baseurl = manager().getURL() + "/" + this._name + "/";
+    this._baseurl = manager.getURL() + "/" + this._name + "/";
     this._localpath = "/" + this._name + "/";
     this.excuteShareService({
         type:"startservice",
@@ -197,7 +197,7 @@ project.prototype.run = function (code) {
         return topolr.promise(function (a) {
             this.config = new projectConfig({
                 page: {
-                    index: "index." + manager().getWebConfig().defaultSuffix
+                    index: "index." + manager.getWebConfig().defaultSuffix
                 },
                 filter: [],
                 service: []
@@ -256,7 +256,6 @@ project.prototype.trigger = function (request, response, res) {
                 parameters:sid
             }
         }).then(function (r) {
-            console.log("--------->>>0")
             if(!r){
                 return ths.excuteShareService({
                     type:'task',
@@ -271,8 +270,8 @@ project.prototype.trigger = function (request, response, res) {
             }else{
                 request._session=sid;
             }
-        },function () {
-            console.log("--------->>>1")
+        },function (e) {
+            console.log(e);
         });
     }else{
         ps=this.excuteShareService({
@@ -292,9 +291,7 @@ project.prototype.trigger = function (request, response, res) {
         response._context = ths;
         var domainer = domain.create();
         domainer.run(function () {
-            console.log("===>")
             ths.doFilters(request, response, function () {
-                console.log("===>2")
                 pss.resolve();
             });
         });
