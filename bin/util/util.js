@@ -127,7 +127,6 @@ var logger = {
             projects.push(info.projects[i].name);
         }
         topolr.log("(color:cyan=>PROJECT)(color:145=>[ {{projects}} ])",{projects:projects.join(" | ")});
-        topolr.log("color:cyan=>----------------------------------------------------");
     },
     request: function (info) {
         var a = new Date();

@@ -512,6 +512,9 @@ project.prototype.excuteLocalShareService=function (serviceName,method,option) {
     return this.excuteShareService(this._name+"_"+serviceName,method,option);
 };
 
+project.prototype.syncProcess=function() {
+};
+
 module.exports = function (path, name, isouter,server) {
     return new project(path, name, isouter,server);
 };
