@@ -1,5 +1,4 @@
 var manager=require("./manager");
-
 var serviceContainer=function (context) {
     this._context=context;
     this._service={};
