@@ -491,9 +491,6 @@ project.prototype.error = function (request, response, e) {
     return this.getModule("errorview", {request: request, response: response, data: e ? e.stack : []}).render();
 };
 
-project.prototype.postTask=function (info) {
-    return this._server.postTask(info);
-};
 project.prototype.postMessage=function (data) {
     this._server.postMessage(data);
 };
@@ -506,13 +503,13 @@ project.prototype.stopService=function (name) {
 project.prototype.excuteService=function (name,method,parameters) {
     return this._server.excuteService(name,method,parameters);
 };
-project.prototype.startLocalService=function (name,path,option) {
+project.prototype.startProjectService=function (name,path,option) {
     return this.startService(this._name+"_"+name,path,option);
 };
-project.prototype.stopLocalService=function (name) {
+project.prototype.stopProjectService=function (name) {
     return this.stopService(this._name+"_"+name);
 };
-project.prototype.excuteLocalService=function (serviceName,method,option) {
+project.prototype.excuteProjectService=function (serviceName,method,option) {
     return this.excuteService(this._name+"_"+serviceName,method,option);
 };
 

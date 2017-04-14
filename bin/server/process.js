@@ -274,14 +274,6 @@ serverprocess.prototype.doResponse = function (reqt, resp, res) {
     }
 };
 
-serverprocess.prototype.postMessage=function (data) {
-    if (!cluster.isMaster) {
-        process.send(event.createEvent({
-            pid:process.pid,
-            id:this._workerId
-        },event.TYPE_MESSAGE,data));
-    }
-};
 serverprocess.prototype.postTask=function (type,data) {
     if (!cluster.isMaster) {
         var id = Math.random().toString(36).slice(2, 34), ps = topolr.promise();
@@ -295,6 +287,14 @@ serverprocess.prototype.postTask=function (type,data) {
             data: data
         }));
         return ps;
+    }
+};
+serverprocess.prototype.postMessage=function (data) {
+    if (!cluster.isMaster) {
+        process.send(event.createEvent({
+            pid:process.pid,
+            id:this._workerId
+        },event.TYPE_MESSAGE,data));
     }
 };
 serverprocess.prototype.excuteService = function (serviceName,method,parameters) {
