@@ -12,7 +12,7 @@ var serviceContainer=function (context) {
     }
 };
 serviceContainer.handler={
-    task:function (data) {
+    excute:function (data) {
         var name=data.serviceName,method=data.method,parameters=data.parameters;
         if(this._service[name]&&this._service[name][method]){
             return this._service[name][method](parameters);

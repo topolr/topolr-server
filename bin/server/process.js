@@ -299,7 +299,7 @@ serverprocess.prototype.postTask=function (type,data) {
 };
 serverprocess.prototype.excuteService = function (serviceName,method,parameters) {
     return this.postTask({
-        type:"task",
+        type:"excute",
         data:{
             serviceName:serviceName,
             method:method,
