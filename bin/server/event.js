@@ -8,6 +8,7 @@ module.exports={
     TYPE_MESSAGE:"message",
     STARTSERVER:"startserver",
     TYPE_TO_MESSAGE:"tomessage",
+    TYPE_TO_TASK:"totask",
     createEvent:function (target,type,data) {
         return new event(target,type,data);
     }

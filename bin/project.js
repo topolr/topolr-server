@@ -261,9 +261,9 @@ project.prototype.trigger = function (request, response, res) {
     var sid = request.getHeaders().getCookie().get(idkey);
     var ps=null,ths=this;
     if(sid){
-        ps=this.excuteShareService("session","check",sid).then(function (r) {
+        ps=this.excuteService("session","check",sid).then(function (r) {
             if(!r){
-                return ths.excuteShareService("session","create").then(function (sid) {
+                return ths.excuteService("session","create").then(function (sid) {
                     response.addCookie(idkey, sid);
                     request._session=sid;
                 });
@@ -272,7 +272,7 @@ project.prototype.trigger = function (request, response, res) {
             }
         });
     }else{
-        ps=this.excuteShareService("session","create").then(function (sid) {
+        ps=this.excuteService("session","create").then(function (sid) {
             response.addCookie(idkey, sid);
             request._session=sid;
         });
@@ -490,26 +490,36 @@ project.prototype.getConfig = function () {
 project.prototype.error = function (request, response, e) {
     return this.getModule("errorview", {request: request, response: response, data: e ? e.stack : []}).render();
 };
-project.prototype.postShareService=function (info) {
-    return this._server.postShareService(info);
+
+project.prototype.postTask=function (info) {
+    return this._server.postTask(info);
 };
-project.prototype.startShareService=function (name,path,option) {
-    return this._server.startShareService(name,path,option);
+project.prototype.postMessage=function (data) {
+    this._server.postMessage(data);
 };
-project.prototype.stopShareService=function (name) {
-    return this._server.stopShareService(name);
+project.prototype.startService=function (name,path,option) {
+    return this._server.startService(name,path,option);
 };
-project.prototype.excuteShareService=function (name,method,parameters) {
-    return this._server.excuteShareService(name,method,parameters);
+project.prototype.stopService=function (name) {
+    return this._server.stopService(name);
 };
-project.prototype.startLocalShareService=function (name,path,option) {
-    return this.startShareService(this._name+"_"+name,path,option);
+project.prototype.excuteService=function (name,method,parameters) {
+    return this._server.excuteService(name,method,parameters);
 };
-project.prototype.stopLocalShareService=function (name) {
-    return this.stopShareService(this._name+"_"+name);
+project.prototype.startLocalService=function (name,path,option) {
+    return this.startService(this._name+"_"+name,path,option);
 };
-project.prototype.excuteLocalShareService=function (serviceName,method,option) {
-    return this.excuteShareService(this._name+"_"+serviceName,method,option);
+project.prototype.stopLocalService=function (name) {
+    return this.stopService(this._name+"_"+name);
+};
+project.prototype.excuteLocalService=function (serviceName,method,option) {
+    return this.excuteService(this._name+"_"+serviceName,method,option);
+};
+
+project.prototype.excuteListener=function (data) {
+    if(this._listener){
+        //todo
+    }
 };
 
 module.exports = function (path, name, isouter,server) {

@@ -2,9 +2,11 @@ var topolr=require("topolr-util");
 var cluster = require('cluster');
 var util=require("./util/util");
 var manager=require("./server/manager");
+var event=require("./server/event");
 var server=function () {
     var workerSize=manager.getWorkerSize();
     if (cluster.isMaster) {
+        var ths=this;
         util.logger.log("serverstart",{
             host:manager.getHost(),
             port:manager.getPort(),
@@ -18,86 +20,71 @@ var server=function () {
         var service = require("./server/service.js")(this);
         for (var i = 0; i < workerSize; i++) {
             var a=cluster.fork();
-            a.send({
-                type:"startserver",
-                data:a.id
-            });
+            a.send(event.createEvent({
+                pid:process.pid,
+                id:"main"
+            },event.STARTSERVER,a.id));
         }
-        cluster.on("message", function (worker,data) {
-            var type=data.type,_data=data.data,id=data.id;
-            var r=service.excute(data);
-            if(r&&r.then&&r.done){
-                r.then(function (a) {
-                    worker.send({
-                        id:id,
-                        data:a
-                    });
-                },function (e) {
-                    worker.send({
-                        id:id,
-                        data:e
-                    });
-                });
-            }else {
-                worker.send({
-                    id: id,
-                    data: r
-                });
+        cluster.on("message", function (worker,event) {
+            var eventType=event.type;
+            if(server.handler[eventType]){
+                server.handler[eventType].call(ths,worker,event);
             }
         });
         cluster.on('exit', function (worker) {
-            console.log('worker' + worker.id + ' exit.');
             var a=cluster.fork();
-            a.send({
-                type:"startserver",
-                data:a.id
-            });
+            a.send(event.createEvent({
+                pid:process.pid,
+                id:"main"
+            },event.STARTSERVER,a.id));
         });
     } else {
         require("./server/process.js")();
     }
 };
 server.handler={
-    task:function (worker,data) {
+    task:function (worker,_event) {
+        var data=_event.data;
         var type=data.type,_data=data.data,id=data.id;
         var r=service.excute(data);
         if(r&&r.then&&r.done){
             r.then(function (a) {
-                worker.send({
+                worker.send(event.createEvent(_event.target,event.TYPE_TO_TASK,{
                     id:id,
                     data:a
-                });
+                }));
             },function (e) {
-                worker.send({
+                worker.send(event.createEvent(_event.target,event.TYPE_TO_TASK,{
                     id:id,
                     data:e
-                });
+                }));
             });
         }else {
-            worker.send({
-                id: id,
-                data: r
-            });
+            worker.send(event.createEvent(_event.target,event.TYPE_TO_TASK,{
+                id:id,
+                data:r
+            }));
         }
     },
-    message:function (worker,data) {
+    message:function (worker,event) {
+        var data=event.data;
         for(var i in cluster.workers){
             if(cluster.workers[i]!==worker){
-                cluster.workers[i].send(data);
+                cluster.workers[i].send(event.createEvent(event.target,event.TYPE_TO_MESSAGE,data));
             }
         }
     }
 };
-server.prototype._doMessage=function (worker,event) {
-    var eventType=event.type;
-    if(server.handler[eventType]){
-        server.handler[eventType].call(this,worker,event.data);
-    }
-};
 server.prototype.postMessage=function (data) {
+    var a=null;
     for(var i in cluster.workers){
-        cluster.workers[i].send(data);
+        a=cluster.workers[i];
+        break;
     }
+    a.send(event.createEvent({
+        pid:process.pid,
+        id:"main"
+    },event.TYPE_TO_MESSAGE,data));
 };
 server.prototype.getProcessInfo=function () {
     return {

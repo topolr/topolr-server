@@ -274,12 +274,12 @@ serverprocess.prototype.doResponse = function (reqt, resp, res) {
     }
 };
 
-serverprocess.prototype.postMessage=function (type,data) {
+serverprocess.prototype.postMessage=function (data) {
     if (!cluster.isMaster) {
         process.send(event.createEvent({
             pid:process.pid,
             id:this._workerId
-        },type,data));
+        },event.TYPE_MESSAGE,data));
     }
 };
 serverprocess.prototype.postTask=function (type,data) {
@@ -289,7 +289,7 @@ serverprocess.prototype.postTask=function (type,data) {
         process.send(event.createEvent({
             pid:process.pid,
             id:this._workerId
-        },event.TYPE_SERVICE,{
+        },event.TYPE_TASK,{
             id: id,
             type: type,
             data: data
@@ -297,22 +297,8 @@ serverprocess.prototype.postTask=function (type,data) {
         return ps;
     }
 };
-
-serverprocess.prototype.postShareService=function (info) {
-    if (!cluster.isMaster) {
-        var id = Math.random().toString(36).slice(2, 34), ps = topolr.promise();
-        var ops = topolr.extend({
-            id: id,
-            type: "",
-            data: null
-        }, info);
-        this._taskqueue[id] = ps;
-        process.send(ops);
-        return ps;
-    }
-};
-serverprocess.prototype.excuteShareService = function (serviceName,method,parameters) {
-    return this.postShareService({
+serverprocess.prototype.excuteService = function (serviceName,method,parameters) {
+    return this.postTask({
         type:"task",
         data:{
             serviceName:serviceName,
@@ -321,8 +307,8 @@ serverprocess.prototype.excuteShareService = function (serviceName,method,parame
         }
     });
 };
-serverprocess.prototype.startShareService=function (name,path,option) {
-    return this.postShareService({
+serverprocess.prototype.startService=function (name,path,option) {
+    return this.postTask({
         type:"startservice",
         data:{
             serviceName:name,
@@ -331,20 +317,32 @@ serverprocess.prototype.startShareService=function (name,path,option) {
         }
     });
 };
-serverprocess.prototype.stopShareService=function (name) {
-    return this.postShareService({
+serverprocess.prototype.stopService=function (name) {
+    return this.postTask({
         type:"stopservice",
         data:{
             serviceName:name
         }
     });
 };
-serverprocess.prototype._doMessage=function (data) {
-    var id = data.id;
-    if (id && this._taskqueue[id]) {
-        var a = this._taskqueue[id];
-        delete this._taskqueue[id];
-        a.resolve(data.data);
+serverprocess.handler={
+    startserver:function (event) {
+        var data=event.data;
+        topolrserver=new serverprocess(data.data).startup();
+    },
+    totask:function (event) {
+        var data=event.data,id = data.id;
+        if (id && this._taskqueue[id]) {
+            var a = this._taskqueue[id];
+            delete this._taskqueue[id];
+            a.resolve(data.data);
+        }
+    },
+    tomessage:function (event) {
+        var data=event.data;
+        for(var i in this.projects){
+            this.projects[i].excuteListener(data);
+        }
     }
 };
 
@@ -356,11 +354,14 @@ process.on('uncaughtException', function (err) {
         });
     }
 });
-process.on("message", function (data) {
-    if(data&&data.type==="startserver"){
-        topolrserver=new serverprocess(data.data).startup();
-    }else if(topolrserver) {
-        topolrserver._doMessage(data);
+process.on("message", function (event) {
+    var type=event.type;
+    if(serverprocess[type]){
+        if(topolrserver){
+            serverprocess[type].call(topolrserver,event);
+        }else {
+            serverprocess[type](event);
+        }
     }
 });
 module.exports=function () {

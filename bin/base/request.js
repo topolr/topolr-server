@@ -77,7 +77,7 @@ var session=function (id,context) {
 };
 session.excute=function () {
     var a=Array.prototype.slice.call(arguments);
-    return this._context.postShareService({
+    return this._context.postTask({
         type:"task",
         data:{
             serviceName:"session",
