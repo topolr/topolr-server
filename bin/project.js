@@ -492,7 +492,11 @@ project.prototype.error = function (request, response, e) {
 };
 
 project.prototype.postMessage=function (data) {
-    this._server.postMessage(data);
+    this._server.postMessage({
+        project:this._name,
+        type:"processMessage",
+        data:data
+    });
 };
 project.prototype.startService=function (name,path,option) {
     return this._server.startService(name,path,option);
@@ -515,7 +519,10 @@ project.prototype.excuteProjectService=function (serviceName,method,option) {
 
 project.prototype.excuteListener=function (data) {
     if(this._listener){
-        //todo
+        var type=data.type||"processMessage";
+        if(this._listener[type]){
+            this._listener[type](data);
+        }
     }
 };
 

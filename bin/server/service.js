@@ -25,10 +25,18 @@ serviceContainer.handler={
         }
     },
     startservice:function (data) {
-        var path=data.path,serviceName=data.serviceName;
+        var path=data.path,serviceName=data.serviceName,ths=this;
         if(path&&!this._service[serviceName]){
             var a=require(path);
-            var service=new a(this._context);
+            var service=new a({
+                postMessage:function (type,data) {
+                    ths._context.postMessage({
+                        target:serviceName,
+                        type:type,
+                        data:data
+                    });
+                }
+            });
             this._service[serviceName]=service;
             this._service.start(data.option||{});
         }
