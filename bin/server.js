@@ -15,7 +15,7 @@ var server=function () {
             http2:manager.isHttp2(),
             info:manager.getServerInfo()
         });
-        var service = require("./server/service.js");
+        var service = require("./server/service.js")(this);
         for (var i = 0; i < workerSize; i++) {
             var a=cluster.fork();
             a.send({
@@ -57,30 +57,70 @@ var server=function () {
         require("./server/process.js")();
     }
 };
-
-
-var actions = {
-    getProcessInfo: function () {
-        return {
-            type: "getProcessInfo",
-            data: {
-                version: process.version,
-                pid: process.pid,
-                title: process.title,
-                uptime: process.uptime(),
-                arch: process.arch,
-                memory: process.memoryUsage(),
-                platform: process.platform,
-                path: process.installPrefix
+server.handler={
+    task:function (worker,data) {
+        var type=data.type,_data=data.data,id=data.id;
+        var r=service.excute(data);
+        if(r&&r.then&&r.done){
+            r.then(function (a) {
+                worker.send({
+                    id:id,
+                    data:a
+                });
+            },function (e) {
+                worker.send({
+                    id:id,
+                    data:e
+                });
+            });
+        }else {
+            worker.send({
+                id: id,
+                data: r
+            });
+        }
+    },
+    message:function (worker,data) {
+        for(var i in cluster.workers){
+            if(cluster.workers[i]!==worker){
+                cluster.workers[i].send(data);
             }
-        };
+        }
     }
 };
+server.prototype._doMessage=function (worker,event) {
+    var eventType=event.type;
+    if(server.handler[eventType]){
+        server.handler[eventType].call(this,worker,event.data);
+    }
+};
+server.prototype.postMessage=function (data) {
+    for(var i in cluster.workers){
+        cluster.workers[i].send(data);
+    }
+};
+server.prototype.getProcessInfo=function () {
+    return {
+        type: "getProcessInfo",
+        data: {
+            version: process.version,
+            pid: process.pid,
+            title: process.title,
+            uptime: process.uptime(),
+            arch: process.arch,
+            memory: process.memoryUsage(),
+            platform: process.platform,
+            path: process.installPrefix
+        }
+    };
+};
+
+var _server=new server();
 process.on("message", function (data) {
     if (data && data.type && actions[data.type]) {
         var a = null;
         try {
-            a = actions[data.type]();
+            a = _server[data.type]();
         } catch (e) {
             a = {
                 type: "error",
@@ -95,5 +135,5 @@ process.on("message", function (data) {
 process.on("uncaughtException", function (e) {
     console.log(e.stack);
 });
-new server();
-module.exports={};
+
+module.exports=_server;

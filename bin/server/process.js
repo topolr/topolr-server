@@ -7,6 +7,8 @@ var request = require("./../base/request");
 var response = require("./../base/response");
 var Path = require("path");
 var manager=require("./manager");
+var event=require("./event");
+var cluster = require('cluster');
 var topolrserver = null;
 
 var serverprocess = function (id) {
@@ -271,8 +273,32 @@ serverprocess.prototype.doResponse = function (reqt, resp, res) {
         res.end();
     }
 };
+
+serverprocess.prototype.postMessage=function (type,data) {
+    if (!cluster.isMaster) {
+        process.send(event.createEvent({
+            pid:process.pid,
+            id:this._workerId
+        },type,data));
+    }
+};
+serverprocess.prototype.postTask=function (type,data) {
+    if (!cluster.isMaster) {
+        var id = Math.random().toString(36).slice(2, 34), ps = topolr.promise();
+        this._taskqueue[id] = ps;
+        process.send(event.createEvent({
+            pid:process.pid,
+            id:this._workerId
+        },event.TYPE_SERVICE,{
+            id: id,
+            type: type,
+            data: data
+        }));
+        return ps;
+    }
+};
+
 serverprocess.prototype.postShareService=function (info) {
-    var cluster = require('cluster');
     if (!cluster.isMaster) {
         var id = Math.random().toString(36).slice(2, 34), ps = topolr.promise();
         var ops = topolr.extend({
