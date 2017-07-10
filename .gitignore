@@ -1,9 +1,4 @@
 /node_modules
 /.idea
 /npm-debug.log
-/webapps/form.json
-/webapps/sdata.json
-/webapps/test.json
-/webapps/topolr.json
-/webapps/ubroad.json
-/webapps/wechat.json
+/webapps/*.json
