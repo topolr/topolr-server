@@ -1,11 +1,11 @@
-var topolr=require("topolr-util");
+var topolr = require("topolr-util");
 var cookie = function (str) {
     this._str = str;
     this._info = {};
     if (str) {
         this._str.split(';').forEach(function (Cookie) {
             var parts = Cookie.split('=');
-            this._info[ parts[ 0 ].trim() ] = (parts[ 1 ] || '').trim();
+            this._info[parts[0].trim()] = (parts[1] || '').trim();
         }.bind(this));
     }
 };
@@ -15,16 +15,16 @@ cookie.prototype.get = function (key) {
 
 var header = function (arr) {
     this._headers = {};
-    if(topolr.is.isArray(arr)) {
+    if (topolr.is.isArray(arr)) {
         arr.forEach(function (n, i) {
             var t = i + 1;
             if (t % 2 !== 0) {
                 this._headers[n.toLowerCase()] = arr[t];
             }
         }.bind(this));
-    }else{
-        for(var i in arr){
-            this._headers[i.toLowerCase()]=arr[i];
+    } else {
+        for (var i in arr) {
+            this._headers[i.toLowerCase()] = arr[i];
         }
     }
 };
@@ -55,22 +55,23 @@ header.prototype.getAcceptLanguage = function () {
 header.prototype.getCookie = function () {
     return new cookie(this._headers.cookie);
 };
-header.prototype.getCookieContent=function(){
+header.prototype.getCookieContent = function () {
     return this._headers["cookie"];
 };
 header.prototype.getAttr = function (key) {
     return this._headers[key];
 };
-header.prototype.getReferer=function () {
+header.prototype.getReferer = function () {
     console.log(this._headers);
     return this._headers["referer"];
 };
-header.prototype.getHeadersInfo=function () {
+header.prototype.getHeadersInfo = function () {
     return this._headers;
 };
 
 var request = function (req, data) {
     this._headers = new header(data.rawHeaders);
+    this._rawURL = data.rawURL;
     this._context = null;
     this._data = {};
     this._session = null;
@@ -78,9 +79,9 @@ var request = function (req, data) {
     this._url = data.url;
     this._realreq = req;
     this._attr = {};
-    this._files={};
-    this._posts={};
-    this._gets={};
+    this._files = {};
+    this._posts = {};
+    this._gets = {};
     this._clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
 };
 request.prototype.getRealRequest = function () {
@@ -99,40 +100,40 @@ request.prototype.getParameter = function (key) {
     return this._data[key];
 };
 request.prototype.getParameters = function () {
-    if(arguments.length===0) {
+    if (arguments.length === 0) {
         return this._data;
-    }else if(arguments.length===1){
-        var a=arguments[0];
-        if(topolr.is.isArray(a)){
-            var r={};
-            for(var i=0;i<a.length;i++){
-                r[a[i]]=this._data[a[i]];
+    } else if (arguments.length === 1) {
+        var a = arguments[0];
+        if (topolr.is.isArray(a)) {
+            var r = {};
+            for (var i = 0; i < a.length; i++) {
+                r[a[i]] = this._data[a[i]];
             }
             return r;
-        }else if(topolr.is.isObject(a)){
-            var r={};
-            for(var i in a){
-                r[i]=a[i];
-                if(this._data[i]!==undefined){
-                    r[i]=this._data[i];
+        } else if (topolr.is.isObject(a)) {
+            var r = {};
+            for (var i in a) {
+                r[i] = a[i];
+                if (this._data[i] !== undefined) {
+                    r[i] = this._data[i];
                 }
             }
             return r;
-        }else{
-            var r={};
-            r[a]=this._data[a];
+        } else {
+            var r = {};
+            r[a] = this._data[a];
             return r;
         }
-    }else {
-        var paras=Array.prototype.slice.call(arguments),ex={};
-        if(topolr.is.isObject(paras[paras.length-1])){
-            ex=paras.pop();
+    } else {
+        var paras = Array.prototype.slice.call(arguments), ex = {};
+        if (topolr.is.isObject(paras[paras.length - 1])) {
+            ex = paras.pop();
         }
-        var r={},a=paras;
-        for(var i=0;i<a.length;i++){
-            r[a[i]]=this._data[a[i]];
+        var r = {}, a = paras;
+        for (var i = 0; i < a.length; i++) {
+            r[a[i]] = this._data[a[i]];
         }
-        topolr.extend(r,ex);
+        topolr.extend(r, ex);
         return r;
     }
 };
@@ -156,13 +157,16 @@ request.prototype.removeAllAttr = function () {
 request.prototype.getURL = function () {
     return this._url;
 };
-request.prototype.getProjectURL=function () {
-    if(this._context._name==="ROOT"){
+request.prototype.getRawURL = function () {
+    return this._rawURL;
+};
+request.prototype.getProjectURL = function () {
+    if (this._context._name === "ROOT") {
         return this._url;
-    }else{
-        return this._url.substring(this._context._name.length+1);
+    } else {
+        return this._url.substring(this._context._name.length + 1);
     }
-},
+};
 request.prototype.getContext = function () {
     return this._context;
 };
@@ -183,10 +187,10 @@ request.prototype.getHttpPath = function () {
     if (t === "ROOT") {
         t = "";
     }
-    return TopolrServer.getServerProtocol()+"://" + this.getHeaders().getHost() + "/" + (t ? t + "/" : "");
+    return TopolrServer.getServerProtocol() + "://" + this.getHeaders().getHost() + "/" + (t ? t + "/" : "");
 };
-request.prototype.getRequestURL=function () {
-    return TopolrServer.getServerProtocol()+"://"+this.getHeaders().getHost()+this.getURL();
+request.prototype.getRequestURL = function () {
+    return TopolrServer.getServerProtocol() + "://" + this.getHeaders().getHost() + this.getURL();
 };
 request.prototype.isSpiderByUA = function () {
     var t = this.getContext();
@@ -224,17 +228,17 @@ request.prototype.isSpider = function () {
     }
     return r;
 };
-request.prototype.getClientIp=function () {
+request.prototype.getClientIp = function () {
     return this._clientIp;
 };
-request.prototype.getPostData=function () {
-    return topolr.extend({},this._posts);
+request.prototype.getPostData = function () {
+    return topolr.extend({}, this._posts);
 };
-request.prototype.getGetData=function () {
-    return topolr.extend({},this._gets);
+request.prototype.getGetData = function () {
+    return topolr.extend({}, this._gets);
 };
-request.prototype.getMultipartData=function () {
-    return topolr.extend({},this._files);
+request.prototype.getMultipartData = function () {
+    return topolr.extend({}, this._files);
 };
 
 module.exports = function (req, data) {

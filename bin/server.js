@@ -191,6 +191,7 @@ topolrServer.prototype.getRequestInfo = function (req, res) {
     var resp = response(), reqt = request(req, {
         method: req.method.toLowerCase(),
         url: _url.split("?")[0] + t,
+        rawURL:_url,
         rawHeaders: req.rawHeaders||req.headers
     });
     return {
