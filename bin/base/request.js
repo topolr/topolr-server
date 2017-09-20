@@ -82,7 +82,10 @@ var request = function (req, data) {
     this._files = {};
     this._posts = {};
     this._gets = {};
-    this._clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
+    this._clientIp = req.headers['x-forwarded-for'] ||
+        (req.connection?req.connection.remoteAddress:undefined) ||
+        (req.socket?req.socket.remoteAddress:undefined) ||
+        (req.connection?(req.connection?req.connection.socket:undefined).remoteAddress:undefined);
 };
 request.prototype.getRealRequest = function () {
     return this._realreq;

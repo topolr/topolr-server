@@ -148,7 +148,7 @@ var logger = {
         });
     },
     error: function (info) {
-        console.error(topolr.logText("    (color:red=>{{stack}})", {stack: info.stack || info}));
+        console.error(topolr.logText("    (color:red=>{{stack}})", {stack: info.stack+"\n" || info}));
     },
     info: function (info) {
         topolr.log("    (color:145=>{{info}})", {info: info});
